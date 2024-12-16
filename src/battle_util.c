@@ -4099,7 +4099,7 @@ bool32 BattlerHasAbility(u8 battler, u16 ability)
         return FALSE;
 
     // Check the species' primary ability (fixedAbility)
-    if (gBattleMons[battler].fixedAbility == ability)
+    if gSpeciesInfo[gBattleMons[battler].species].abilities[0]
     {
         gLastUsedAbility = ability; // Set the correct ability for pop-ups
         return TRUE;
