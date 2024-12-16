@@ -1282,11 +1282,21 @@ void CreateBoxMon(struct BoxPokemon *boxMon, u16 species, u8 level, u8 fixedIV, 
         }
     }
 
-    if (gSpeciesInfo[species].abilities[1])
+    if (gSpeciesInfo[species].abilities[1]) // Secondary ability exists
     {
-        value = personality & 1;
-        SetBoxMonData(boxMon, MON_DATA_ABILITY_NUM, &value);
+    u8 randomValue = Random() % 100; // Random value between 0-99
+    if (randomValue < 90) // 90% chance for secondary ability
+        value = 1; // Secondary ability
+    else if (gSpeciesInfo[species].abilities[2]) // Check for hidden ability
+        value = 2; // Hidden ability
+    else
+        value = 1; // Fallback to secondary ability
     }
+    else
+    {
+    value = 0; // Fixed ability
+    }
+    SetBoxMonData(boxMon, MON_DATA_ABILITY_NUM, &value);
 
     GiveBoxMonInitialMoveset(boxMon);
 }
@@ -3476,7 +3486,21 @@ u16 GetMonAbility(struct Pokemon *mon)
 {
     u16 species = GetMonData(mon, MON_DATA_SPECIES, NULL);
     u8 abilityNum = GetMonData(mon, MON_DATA_ABILITY_NUM, NULL);
+
+    // Always prioritize the fixed ability, which is abilities[0]
+    if (abilityNum == 0) // AbilityNum 0 corresponds to the fixed ability
+        return gSpeciesInfo[species].abilities[0];
+
+    // Otherwise, get the ability based on abilityNum
     return GetAbilityBySpecies(species, abilityNum);
+}
+
+bool32 MonHasAbility(struct Pokemon *mon, u16 ability)
+{
+    u16 species = GetMonData(mon, MON_DATA_SPECIES, NULL);
+    u8 abilityNum = GetMonData(mon, MON_DATA_ABILITY_NUM, NULL);
+
+    return (gSpeciesInfo[species].abilities[0] == ability || GetAbilityBySpecies(species, abilityNum) == ability);
 }
 
 void CreateSecretBaseEnemyParty(struct SecretBase *secretBaseRecord)
@@ -3686,6 +3710,7 @@ void PokemonToBattleMon(struct Pokemon *src, struct BattlePokemon *dst)
     dst->types[1] = gSpeciesInfo[dst->species].types[1];
     dst->types[2] = TYPE_MYSTERY;
     dst->isShiny = IsMonShiny(src);
+    dst->fixedAbility = gSpeciesInfo[dst->species].abilities[0];
     dst->ability = GetAbilityBySpecies(dst->species, dst->abilityNum);
     GetMonData(src, MON_DATA_NICKNAME, nickname);
     StringCopy_Nickname(dst->nickname, nickname);
@@ -6490,18 +6515,19 @@ u16 GetFormChangeTargetSpeciesBoxMon(struct BoxPokemon *boxMon, u16 method, u32 
     if (formChanges != NULL)
     {
         heldItem = GetBoxMonData(boxMon, MON_DATA_HELD_ITEM, NULL);
-        ability = GetAbilityBySpecies(species, GetBoxMonData(boxMon, MON_DATA_ABILITY_NUM, NULL));
+        u16 fixedAbility = gSpeciesInfo[species].abilities[0]; // Get the fixed ability
+        u16 secondaryAbility = GetAbilityBySpecies(species, GetBoxMonData(boxMon, MON_DATA_ABILITY_NUM, NULL)); // Get the secondary ability
 
         for (i = 0; formChanges[i].method != FORM_CHANGE_TERMINATOR; i++)
         {
             if (method == formChanges[i].method && species != formChanges[i].targetSpecies)
             {
                 switch (method)
-                {
+                 {
                 case FORM_CHANGE_ITEM_HOLD:
                     if ((heldItem == formChanges[i].param1 || formChanges[i].param1 == ITEM_NONE)
-                     && (ability == formChanges[i].param2 || formChanges[i].param2 == ABILITY_NONE))
-                        targetSpecies = formChanges[i].targetSpecies;
+                    && (fixedAbility == formChanges[i].param2 || secondaryAbility == formChanges[i].param2 || formChanges[i].param2 == ABILITY_NONE))
+                    targetSpecies = formChanges[i].targetSpecies;
                     break;
                 case FORM_CHANGE_ITEM_USE:
                     if (arg == formChanges[i].param1)
