@@ -68,9 +68,10 @@
 #define GEN_7 6
 #define GEN_8 7
 #define GEN_9 8
-#define GEN_COUNT 9
+#define GEN_10 9
+#define GEN_COUNT 10
 // Changing GEN_LATEST's value to a different Generation will change every default setting that uses it at once.
-#define GEN_LATEST GEN_9
+#define GEN_LATEST GEN_10
 
 // General settings
 #define EXPANSION_INTRO              TRUE    // If TRUE, a custom RHH intro will play after the vanilla copyright screen.
