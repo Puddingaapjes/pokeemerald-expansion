@@ -241,124 +241,58 @@ static inline void OklchToRgb5(uQ0_8 L, uQ0_8 C, uQ0_8 H, u8 *r, u8 *g, u8 *b)
 
 /* -------- Variants data -------- */
 
-const struct SpeciesVariant *GetSpeciesVariants(u32 species)
+const struct SpeciesVariant *GetSpeciesVariants(enum Species species)
 {
-  const struct SpeciesVariant *l = &gSpeciesVariants[species];
+  const struct SpeciesVariant *sv = &gSpeciesVariants[species];
 
   // Treat an all-zero entry as "no variant" and return default.
-  if (l->pv1.length == 0 && l->pv2.length == 0 &&
-      l->pv1.hue_amount == 0 && l->pv1.chr_amount == 0 && l->pv1.lum_amount == 0 &&
-      l->pv2.hue_amount == 0 && l->pv2.chr_amount == 0 && l->pv2.lum_amount == 0)
+  if (sv->base.paletteRange.length == 0)
   {
-    DebugPrintf("%d - Default variant", species);
     static const struct SpeciesVariant s = DEFAULT_SPECIES_VARIANT;
     return &s;
   }
-  else
-  {
-    DebugPrintf("%d - Custom variant", species);
-  }
-  return l;
+  return sv;
 }
 
 // return shiny-specific variant data or default if species has no shiny variants.
-const struct SpeciesVariant *GetSpeciesShinyVariants(u32 species)
+const struct SpeciesVariant *GetSpeciesShinyVariants(enum Species species)
 {
-  const struct SpeciesVariant *l = &gSpeciesShinyVariants[species];
+  const struct SpeciesVariant *sv = &gSpeciesShinyVariants[species];
 
-  if (l->pv1.length == 0 && l->pv2.length == 0 &&
-      l->pv1.hue_amount == 0 && l->pv1.chr_amount == 0 && l->pv1.lum_amount == 0 &&
-      l->pv2.hue_amount == 0 && l->pv2.chr_amount == 0 && l->pv2.lum_amount == 0)
+  if (sv->base.paletteRange.length == 0)
   {
     static const struct SpeciesVariant s = DEFAULT_SPECIES_VARIANT;
     return &s;
   }
-  return l;
+  return sv;
+}
+
+static inline u8 ChrLumRange(u8 base, s8 delta)
+{
+    s16 shift = (s16)base + (s16)delta;
+    if (shift < 0)   return 0;
+    if (shift > 255) return 255;
+    return (u8)shift;
 }
 
 // -------- Core palette application --------
-void ApplyPaletteVariantToPaletteBuffer(u16 pal16[16], const struct PaletteVariant *pv, u16 prn16)
+void ApplyPaletteVariantToPaletteBuffer(u16 pal16[16], const struct PaletteVariant *pv, u8 varIdx)
 {
-    u8 start = pv->start;
-    u8 len = (u8)(pv->length);
+    u8 start = pv->paletteRange.start;
+    u8 len = (u8)(pv->paletteRange.length);
     if (len == 0)
         return;
 
-    const u8 hmax = sHueTable[pv->hue_amount & 15u];
-    const u8 cmax = sCLTable[pv->chr_amount & 3u];
-    const u8 lmax = sCLTable[pv->lum_amount & 3u];
+    if (varIdx >= MAX_VARIANTS)
+        varIdx = 0;
 
     // Nothing to do
-    if ((hmax | cmax | lmax) == 0)
+    if ((pv->paletteShift[varIdx].hueAmount | pv->paletteShift[varIdx].chrAmount | pv->paletteShift[varIdx].lumAmount) == 0)
         return;
 
     u8 iStart = ClampU8(start, 0, 15);
     u8 iEnd   = ClampU8((u16)start + (u16)len, 0, 16);
-    u32 rnd = (u32)prn16;
 
-    // split personality into 
-    u8 varIdx = (BITS(rnd, 0, 16)) % NUM_VARIANTS;   // 0..NUM_VARIANTS-1
-    s8 varNum = NUM_VARIANTS - 1;
-
-    // Hue shift computation
-    s8 hueShift = 0;
-    s8 chromaShift = 0;
-    s8 lumaShift = 0;
-
-    switch (pv->hue_direction)
-    {
-    case UP:
-        hueShift = (varIdx * hmax) / varNum;        // 0..+hmax
-        break;
-
-    case DOWN:
-        hueShift = -(varIdx * hmax) / varNum;     // 0..-hmax
-        break;
-
-    case INVERSE:
-        hueShift = -((2 * varIdx - varNum) * hmax) / varNum; // +hmax..-hmax
-        break;
-
-    default: // CENTER
-        hueShift = ((2 * varIdx - varNum) * hmax) / varNum; // -hmax..+hmax
-        break;
-    }
-
-    switch (pv->chr_direction)
-    {
-    case UP:
-        chromaShift = (varIdx * cmax) / varNum;        // 0..+clmax
-        break;
-
-    case DOWN:
-        chromaShift = -(varIdx * cmax) / varNum;     // 0..-clmax
-        break;
-    
-    case INVERSE:
-        chromaShift = -((2 * varIdx - varNum) * cmax) / varNum; // +clmax..-clmax
-        break;
-
-    default: // CENTER
-        chromaShift = ((2 * varIdx - varNum) * cmax) / varNum; // -clmax..+clmax
-        break;
-    }
-
-    switch (pv->lum_direction)
-    {
-    case UP:
-        lumaShift = (varIdx * lmax) / varNum;        // 0..+clmax
-        break;
-    case DOWN:
-        lumaShift = -(varIdx * lmax) / varNum;     // 0..-clmax
-        break;
-    case INVERSE:
-        lumaShift = -((2 * varIdx - varNum) * lmax) / varNum; // +clmax..-clmax
-        break;
-    default: // CENTER  
-        lumaShift = ((2 * varIdx - varNum) * lmax) / varNum; // -clmax..+clmax
-        break;
-    }
-    
     for (u8 i = iStart; i < iEnd; ++i)
     {
         u8 r5, g5, b5, h, c, l;
@@ -367,9 +301,9 @@ void ApplyPaletteVariantToPaletteBuffer(u16 pal16[16], const struct PaletteVaria
         Rgb5ToOklch(r5, g5, b5, &l, &c, &h);
 
         // Apply hue shift
-        h = (u8)(h + hueShift);
-        c = (u8)(c + chromaShift);
-        l = (u8)(l + lumaShift);
+        h = (u8)(h + pv->paletteShift[varIdx].hueAmount);
+        c = ChrLumRange(c, pv->paletteShift[varIdx].chrAmount);
+        l = ChrLumRange(l, pv->paletteShift[varIdx].lumAmount);
 
         OklchToRgb5(l, c, h, &r5, &g5, &b5);
         pal16[i] = Rgb555Pack(r5, g5, b5);
@@ -393,24 +327,23 @@ void ApplyCustomRestrictionToPaletteBuffer(u8 hMin, u8 hMax, u8 cMin, u8 cMax, u
     pal16[i] = Rgb555Pack(r5, g5, b5);
   }
 }
-
-void ApplyMonSpeciesVariantToPaletteBuffer(u32 species, bool8 shiny, u32 personality, u16 pal16[16])
+u8 GetMonVariantIdx(enum Species species, bool32 isShiny, u32 personality)
 {
-  const struct SpeciesVariant *sv = shiny ? GetSpeciesShinyVariants(species) : GetSpeciesVariants(species);
+    const struct SpeciesVariant *sv = isShiny ? GetSpeciesShinyVariants(species) : GetSpeciesVariants(species);
+    return (u8)personality % sv->numVariants;
+}
+
+void ApplyMonSpeciesVariantToPaletteBuffer(enum Species species, bool8 shiny, u32 personality, u16 pal16[16])
+{
+  const struct SpeciesVariant *sv = shiny 
+  ? GetSpeciesShinyVariants(species) 
+  : GetSpeciesVariants(species);
+  
   if (sv == NULL)
     return;
 
-  // ---- Variation 1 (use low 16 bits as PRN) ----
-  if (sv->pv1.hue_amount || sv->pv1.chr_amount || sv->pv1.lum_amount)
-  {
-    u16 prn1 = (u16)BITS(personality, 0, 16);
-    ApplyPaletteVariantToPaletteBuffer(pal16, &sv->pv1, prn1);
-  }
+  u8 variantIdx = GetMonVariantIdx(species, shiny, personality);
 
-  // ---- Variation 2 ----
-  if (sv->pv2.hue_amount || sv->pv2.chr_amount || sv->pv2.lum_amount)
-  {
-    u16 prn2 = (u16)BITS(personality, 0, 16);
-    ApplyPaletteVariantToPaletteBuffer(pal16, &sv->pv2, prn2);
-  }
+    ApplyPaletteVariantToPaletteBuffer(pal16, &sv->base,   variantIdx);
+    ApplyPaletteVariantToPaletteBuffer(pal16, &sv->accent, variantIdx);
 }
