@@ -77,8 +77,11 @@ struct PaletteFadeControl
     bool32 softwareFadeFinishing:1;
     bool32 objPaletteToggle:1;
     u32 deltaY:4; // rate of change of blend coefficient
-    u32 simultaneousFade:1; // instead of alternating between fading sptite and bg, fade both simultaneously (to avoid visual inconsistencies in rare scenarios)
-    u32 padding:14;
+    bool8 doBldAlpha1Ovrd:1;
+    u8 bldAlpha1Ovrd:4;
+    bool8 doBldAlpha2Ovrd:1;
+    u8 bldAlpha2Ovrd:4;
+    u32 padding:5;
 };
 
 extern const struct BlendSettings gTimeOfDayBlend[];
