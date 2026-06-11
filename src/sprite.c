@@ -449,7 +449,12 @@ u32 CreateSpriteUnchecked(const struct SpriteTemplate *template, s16 x, s16 y, u
 u32 CreateSpriteAtEnd(const struct SpriteTemplate *template, s16 x, s16 y, u32 subpriority)
 {
     u32 spriteId = CreateSpriteAtEndUnchecked(template, x, y, subpriority);
-    fatal_assertf(spriteId < MAX_SPRITES, "Out of sprite slots");
+
+#if DEBUG
+    if (spriteId >= MAX_SPRITES)
+        MgbaPrintf(MGBA_LOG_ERROR, "Out of sprite slots");
+#endif
+
     return spriteId;
 }
 
