@@ -104,6 +104,7 @@ const struct ObjectEventTemplate TryGetObjectEventTemplateForOWE(const struct Ob
 struct SpritePalette GetOWESpawnDespawnAnimFldEffPalette(enum SpawnDespawnTypeOWE spawnAnim);
 u32 RemoveOldestGeneratedOWE(void);
 bool32 CanRemoveObjectForOWEMovement(struct ObjectEvent *objectEvent);
+u32 GetOWEPersonality(struct ObjectEvent *owe);
 
 extern const u8 InteractWithOverworldWildEncounter[];
 

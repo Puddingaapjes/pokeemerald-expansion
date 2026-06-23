@@ -78,6 +78,7 @@ struct InfoOWE
     bool8 isShiny;
     bool8 isFemale;
     bool8 noDespawn;
+    u32 personality;
 };
 
 
@@ -173,8 +174,11 @@ static bool32 IsOWENextToObject(struct ObjectEvent *owe, struct ObjectEvent *obj
 static enum Direction CheckOWEPathToPlayerFromCollision(struct ObjectEvent *owe, enum Direction newDirection);
 static void Task_OWEApproachForBattle(u8 taskId);
 static bool32 CheckValidOWESpecies(enum Species speciesId);
+static inline u32 GetOWEPersonalityBySpawnSlot(u32 spawnSlot);
+static inline void SetOWEPersonalityBySpawnSlot(u32 spawnSlot, u32 personality);
 
 static EWRAM_DATA u8 sOWESpawnCountdown = 0;
+static EWRAM_DATA u32 sOWEPersonality[OWE_SPAWNS_MAX] = {0};
 
 struct AgeSort
 {
@@ -309,6 +313,7 @@ void UpdateOverworldWildEncounter(void)
         .movementType = OWE_GetMovementTypeFromSpecies(infoOWE.speciesId),
         .trainerType = TRAINER_TYPE_OW_WILD_ENCOUNTER,
     };
+    SetOWEPersonalityBySpawnSlot(spawnSlot, infoOWE.personality);
     u32 objectEventId = GetObjectEventIdByLocalId(infoOWE.localId);
     struct ObjectEvent *owe = &gObjectEvents[objectEventId];
     if (ShouldDespawnGeneratedForNewOWE(owe))
@@ -325,6 +330,7 @@ void UpdateOverworldWildEncounter(void)
     owe->disableCoveringGroundEffects = TRUE;
     owe->sOverworldEncounterLevel = infoOWE.noDespawn ? (infoOWE.level | OWE_NO_DESPAWN_FLAG) : infoOWE.level;
     owe->sOverworldEncounterCategory = infoOWE.category;
+
 
     ObjectEventTurn(owe, gStandardDirections[Random() & 3]);
     SetNewOWESpawnCountdown();
@@ -392,7 +398,10 @@ void StartWildBattleWithOWE(struct ScriptContext *ctx)
     }
 
     ZeroEnemyPartyMons();
-    personality = GetMonPersonality(speciesId, gender, NATURE_RANDOM, RANDOM_UNOWN_LETTER);
+    if (IsOverworldWildEncounter(owe, OWE_GENERATED))
+        personality = GetOWEPersonalityBySpawnSlot(GetSpawnSlotByOWELocalId(localId));
+    else
+        personality = GetMonPersonality(speciesId, gender, NATURE_RANDOM, RANDOM_UNOWN_LETTER);
     CreateMonWithIVs(&gParties[B_TRAINER_OPPONENT_A][0], speciesId, level, personality, OTID_STRUCT_PLAYER_ID, USE_RANDOM_IVS);
     GiveMonInitialMoveset(&gParties[B_TRAINER_OPPONENT_A][0]);
     SetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_IS_SHINY, &shiny);
@@ -1159,6 +1168,26 @@ static u32 GetSpeciesByOWESpawnSlot(u32 spawnSlot)
     return OW_SPECIES(owe);
 }
 
+u32 GetOWEPersonality(struct ObjectEvent *owe)
+{
+    if (!IsOverworldWildEncounter(owe, OWE_GENERATED))
+        return 0;
+    return GetOWEPersonalityBySpawnSlot(GetSpawnSlotByOWELocalId(owe->localId));
+}
+
+static inline u32 GetOWEPersonalityBySpawnSlot(u32 spawnSlot)
+{
+    if (spawnSlot >= OWE_SPAWNS_MAX)
+        return 0;
+    return sOWEPersonality[spawnSlot];
+}
+
+static inline void SetOWEPersonalityBySpawnSlot(u32 spawnSlot, u32 personality)
+{
+    if (spawnSlot < OWE_SPAWNS_MAX)
+        sOWEPersonality[spawnSlot] = personality;
+}
+
 static bool32 TrySelectTileForOWE(s32* outX, s32* outY)
 {
     u32 elevation;
@@ -1238,6 +1267,7 @@ static void SetSpeciesInfoForOWE(struct InfoOWE *info, u32 x, u32 y)
     info->speciesId = GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_SPECIES);
     info->level = GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_LEVEL);
     personality = GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_PERSONALITY);
+    info->personality = personality;
 
     if (info->speciesId == SPECIES_UNOWN)
         info->speciesId = GetUnownSpeciesId(personality);
@@ -1415,6 +1445,9 @@ void OnOverworldWildEncounterDespawn(struct ObjectEvent *owe)
 
     if (owe->sOverworldEncounterCategory < ROAMER_COUNT)
         RoamerMove(owe->sOverworldEncounterCategory);
+
+    if (type == OWE_GENERATED)
+        SetOWEPersonalityBySpawnSlot(GetSpawnSlotByOWELocalId(owe->localId), 0);
 
     owe->sOverworldEncounterLevel = 0;
     owe->sOverworldEncounterAge = 0;
