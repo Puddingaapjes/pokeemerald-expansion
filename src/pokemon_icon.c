@@ -7,10 +7,11 @@
 #include "pokemon_icon.h"
 #include "sprite.h"
 #include "data.h"
+#include "variant_colours.h"
 #include "constants/pokemon_icon.h"
 
 #define POKE_ICON_SPECIES_BASE_PAL_TAG (POKE_ICON_BASE_PAL_TAG + 16)
-#define POKE_ICON_SPECIES_MAX_PAL_TAG (POKE_ICON_SPECIES_BASE_PAL_TAG + NUM_SPECIES + SPECIES_SHINY_TAG)
+#define POKE_ICON_SPECIES_MAX_PAL_TAG (POKE_ICON_SPECIES_BASE_PAL_TAG + (NUM_SPECIES * MAX_VARIANTS) + SPECIES_SHINY_TAG)
 
 #define IS_MON_ICON_TAG(x) (((x) >= POKE_ICON_BASE_PAL_TAG && (x) < POKE_ICON_BASE_PAL_TAG + ARRAY_COUNT(gMonIconPaletteTable)) || \
                             ((x) >= POKE_ICON_SPECIES_BASE_PAL_TAG && (x) < POKE_ICON_SPECIES_MAX_PAL_TAG))
@@ -153,25 +154,49 @@ const u16 gMonIconPalettesCompressed[][16] =
     INCBIN_U16("graphics/pokemon/icon_palettes/pal5.gbapal"),
 };
 
-const u16 * GetIconPalette(enum Species species, bool32 isShiny, bool32 female)
+const u16 * GetIconPalette(enum Species species, u32 personality, bool32 isShiny, bool32 female)
 {
-#if P_GENDER_DIFFERENCES
-    if (gSpeciesInfo[species].iconSpriteFemale != NULL && gSpeciesInfo[species].paletteFemale != NULL && female)
-        return (isShiny) ? gSpeciesInfo[species].shinyPaletteFemale : gSpeciesInfo[species].paletteFemale;
+    const u16 *iconPal = NULL;
+
+    if (isShiny)
+    {
+        iconPal = gSpeciesInfo[species].overworldShinyPalette;
+
+    #if P_GENDER_DIFFERENCES
+        if (female && gSpeciesInfo[species].overworldShinyPaletteFemale != NULL)
+            iconPal = gSpeciesInfo[species].overworldShinyPaletteFemale;
+    #endif
+    }
     else
-#endif
-    if (gSpeciesInfo[species].palette != NULL)
-        return (isShiny) ? gSpeciesInfo[species].shinyPalette : gSpeciesInfo[species].palette;
-    else
-        return gMonIconPalettesCompressed[GetMonIconPaletteIndexFromSpecies(species)];
+    {
+        iconPal = gSpeciesInfo[species].overworldPalette;
+
+    #if P_GENDER_DIFFERENCES
+        if (female && gSpeciesInfo[species].overworldPaletteFemale != NULL)
+            iconPal = gSpeciesInfo[species].overworldPaletteFemale;
+
+    #endif
+    }
+
+    if (iconPal == NULL)
+        iconPal = gMonIconPalettesCompressed[GetMonIconPaletteIndexFromSpecies(species)];
+
+    // Apply variant colours
+  
+    static u16 sIconVariantPal[16];
+    CpuCopy16(iconPal, sIconVariantPal, sizeof(sIconVariantPal));
+
+    ApplyMonSpeciesVariantToPaletteBuffer(species, isShiny ? TRUE : FALSE, personality, sIconVariantPal);
+    return sIconVariantPal;
 }
 
-const u32 GetIconPalTag(enum Species species, bool32 isShiny)
+const u32 GetIconPalTag(enum Species species, bool32 isShiny, u8 varIdx)
 {
     u32 tag = POKE_ICON_SPECIES_BASE_PAL_TAG;
     if (isShiny)
-        tag += NUM_SPECIES;
-    tag += species;
+        tag += NUM_SPECIES * MAX_VARIANTS;
+    tag += (u32)species * MAX_VARIANTS;
+    tag += varIdx;
     return tag;
 }
 
@@ -220,8 +245,9 @@ u8 CreateMonIcon3(enum Species species, void (*callback)(struct Sprite *), s16 x
 u8 CreateMonIcon2(enum Species species, void (*callback)(struct Sprite *), s16 x, s16 y, u8 subpriority, bool32 isShiny, u32 personality, bool32 isEgg)
 {
     u32 paletteNum;
-    const u16 *palette = GetIconPalette(species, isShiny, IsPersonalityFemale(species, personality));
-    u16 tag = GetIconPalTag(species, isShiny);
+    u8 varIdx = GetMonVariantIdx(species, isShiny, personality);
+    const u16 *palette = GetIconPalette(species, personality, isShiny, IsPersonalityFemale(species, personality));
+    u16 tag = GetIconPalTag(species, isShiny, varIdx);
 
     if ((paletteNum = IndexOfSpritePaletteTag(tag)) >= 16) 
     {

@@ -6506,7 +6506,7 @@ static void PutMonIconOnLvlUpBanner(void)
     spriteId = CreateSprite(&sSpriteTemplate_MonIconOnLvlUpBanner, 256, 10, 0);
     gSprites[spriteId].sDestroy = FALSE;
     gSprites[spriteId].sXOffset = gBattle_BG2_X;
-    SetMonIconPalette(&gPlayerParty[gBattleStruct->expGetterMonId], NULL, index);
+    SetMonIconPalette(&gParties[B_TRAINER_PLAYER][gBattleStruct->expGetterMonId], NULL, index);
 }
 
 static void SpriteCB_MonIconOnLvlUpBanner(struct Sprite *sprite)
