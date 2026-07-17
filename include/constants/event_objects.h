@@ -450,17 +450,22 @@ enum
 #define OBJ_EVENT_MON               (1u << 14)
 #define OBJ_EVENT_MON_SHINY         (1u << 13)
 #define OBJ_EVENT_MON_FEMALE        (1u << 12)
-#define OBJ_EVENT_MON_SPECIES_MASK  (~(7u << 12))
+#define OBJ_EVENT_MON_SURFING       (1u << 11)
+#define OBJ_EVENT_MON_SPECIES_MASK  (~(15u << 11))
 
 // Used to call a specific species' follower graphics. Useful for static encounters.
 #define OBJ_EVENT_GFX_SPECIES(name)                 (SPECIES_##name + OBJ_EVENT_MON)
 #define OBJ_EVENT_GFX_SPECIES_SHINY(name)           (SPECIES_##name + OBJ_EVENT_MON + OBJ_EVENT_MON_SHINY)
 #define OBJ_EVENT_GFX_SPECIES_FEMALE(name)          (SPECIES_##name + OBJ_EVENT_MON + OBJ_EVENT_MON_FEMALE)
 #define OBJ_EVENT_GFX_SPECIES_SHINY_FEMALE(name)    (SPECIES_##name + OBJ_EVENT_MON + OBJ_EVENT_MON_SHINY + OBJ_EVENT_MON_FEMALE)
+#define OBJ_EVENT_GFX_SPECIES_SURFING(name)         (SPECIES_##name + OBJ_EVENT_MON + OBJ_EVENT_MON_SURFING)
+#define OBJ_EVENT_GFX_SPECIES_SHINY_SURFING(name)   (SPECIES_##name + OBJ_EVENT_MON + OBJ_EVENT_MON_SHINY + OBJ_EVENT_MON_SURFING)
+
 
 #define OW_SPECIES(x) ((x)->graphicsId & OBJ_EVENT_MON_SPECIES_MASK)
 #define OW_SHINY(x) ((x)->graphicsId & OBJ_EVENT_MON_SHINY)
 #define OW_FEMALE(x) ((x)->graphicsId & OBJ_EVENT_MON_FEMALE)
+#define OW_SURFING(x) ((x)->graphicsId & OBJ_EVENT_MON_SURFING)
 
 // Whether Object Event is an OW Pokémon
 #define IS_OW_MON_OBJ(obj) ((obj)->graphicsId & OBJ_EVENT_MON)
