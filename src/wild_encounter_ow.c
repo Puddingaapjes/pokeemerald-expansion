@@ -77,6 +77,7 @@ struct InfoOWE
     u8 level;
     bool8 isShiny;
     bool8 isFemale;
+    bool8 isSurfing;
     bool8 noDespawn;
     u32 personality;
 };
@@ -154,9 +155,9 @@ static u32 GetSpeciesByOWESpawnSlot(u32 spawnSlot);
 static bool32 TrySelectTileForOWE(s32* outX, s32* outY);
 static void SetSpeciesInfoForOWE(struct InfoOWE *info, u32 x, u32 y);
 static u32 GetGraphicsIdForOWE(const struct InfoOWE *info);
-static bool32 CheckCanLoadOWE(enum Species speciesId, bool32 isFemale, bool32 isShiny, s32 x, s32 y);
+static bool32 CheckCanLoadOWE(enum Species speciesId, bool32 isFemale, bool32 isShiny, bool32 isSurfing, s32 x, s32 y);
 static bool32 CheckCanLoadOWE_Palette(enum Species speciesId, bool32 isFemale, bool32 isShiny, s32 x, s32 y);
-static bool32 CheckCanLoadOWE_Tiles(enum Species speciesId, bool32 isFemale, bool32 isShiny, s32 x, s32 y);
+static bool32 CheckCanLoadOWE_Tiles(enum Species speciesId, bool32 isFemale, bool32 isShiny, bool32 isSurfing, s32 x, s32 y);
 static void SortOWEAges(void);
 static bool32 ShouldDespawnGeneratedForNewOWE(struct ObjectEvent *owe);
 static void SetNewOWESpawnCountdown(void);
@@ -296,7 +297,7 @@ void UpdateOverworldWildEncounter(void)
      || (WE_OWE_SPECIAL_ONLY && infoOWE.category >= OWE_CATEGORY_WILD)
      || !IsWildLevelAllowedByRepel(infoOWE.level)
      || !IsAbilityAllowingEncounter(infoOWE.level)
-     || !CheckCanLoadOWE(infoOWE.speciesId, infoOWE.isFemale, infoOWE.isShiny, x, y))
+     || !CheckCanLoadOWE(infoOWE.speciesId, infoOWE.isFemale, infoOWE.isShiny, infoOWE.isSurfing, x, y))
     {
         SetMinimumOWESpawnTimer();
         return;
@@ -1283,24 +1284,25 @@ static void SetSpeciesInfoForOWE(struct InfoOWE *info, u32 x, u32 y)
 
     if (info->category == OWE_CATEGORY_UNDEFINED)
         info->category = OWE_CATEGORY_WILD;
-
+    info->isSurfing = MetatileBehavior_IsSurfableFishableWater(MapGridGetMetatileBehaviorAt(x, y)) && gMapHeader.mapType != MAP_TYPE_UNDERWATER;
+    
     ZeroEnemyPartyMons();
 }
 
 static u32 GetGraphicsIdForOWE(const struct InfoOWE *info)
 {
     assertf(CheckValidOWESpecies(info->speciesId), "invalid generated overworld encounter\nspecies: %d\ncheck if valid wild mon header exists", info->speciesId);
-    return GetGraphicsIdForMon(info->speciesId, info->isShiny, info->isFemale);
+    return GetGraphicsIdForMon(info->speciesId, info->isShiny, info->isFemale, info->isSurfing);
 }
 
-static bool32 CheckCanLoadOWE(enum Species speciesId, bool32 isFemale, bool32 isShiny, s32 x, s32 y)
+static bool32 CheckCanLoadOWE(enum Species speciesId, bool32 isFemale, bool32 isShiny, bool32 isSurfing, s32 x, s32 y)
 {
     assertf(CheckCanLoadOWE_Palette(speciesId, isFemale, isShiny, x, y), "could not load palette for overworld encounter\nspecies: %d\nfemale: %d\nshiny: %d\ncoords: %d %d", speciesId, isFemale, isShiny, x, y)
     {
         return FALSE;
     }
 
-    assertf(CheckCanLoadOWE_Tiles(speciesId, isFemale, isShiny, x, y), "could not load sprite tiles for overworld encounter\nspecies: %d\nfemale: %d\nshiny: %d\ncoords: %d %d", speciesId, isFemale, isShiny, x, y)
+    assertf(CheckCanLoadOWE_Tiles(speciesId, isFemale, isShiny, isSurfing, x, y), "could not load sprite tiles for overworld encounter\nspecies: %d\nfemale: %d\nshiny: %d\ncoords: %d %d", speciesId, isFemale, isShiny, x, y)
     {
         return FALSE;
     }
@@ -1346,12 +1348,12 @@ static u32 GetNumberOfSpawnAnimTiles(s32 x, s32 y)
     return gFieldEffectObjectTemplatePointers[visual]->images->size / TILE_SIZE_4BPP;
 }
 
-static bool32 CheckCanLoadOWE_Tiles(enum Species speciesId, bool32 isFemale, bool32 isShiny, s32 x, s32 y)
+static bool32 CheckCanLoadOWE_Tiles(enum Species speciesId, bool32 isFemale, bool32 isShiny, bool32 isSurfing, s32 x, s32 y)
 {
-    u32 graphicsId = GetGraphicsIdForMon(speciesId, isShiny, isFemale);
+    u32 graphicsId = GetGraphicsIdForMon(speciesId, isShiny, isFemale, isSurfing);
     const struct ObjectEventGraphicsInfo *graphicsInfo = GetObjectEventGraphicsInfo(graphicsId);
     u32 tileCount = graphicsInfo->size / TILE_SIZE_4BPP;
-    if (OW_GFX_COMPRESS)
+    if (OW_GFX_COMPRESS && graphicsInfo->compressed)
     {
         u32 tag = graphicsInfo->tileTag;
         u32 frames;
