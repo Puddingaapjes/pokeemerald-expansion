@@ -56,31 +56,34 @@ u8 GetMonVariantIdx(enum Species species, bool32 isShiny, u32 personality);
 static const struct SpeciesVariant gSpeciesVariants[NUM_SPECIES] = 
 {
     [SPECIES_BULBASAUR] = {
-        BASE(2, 5, {0, 0, 0}, {-25, 0, 0}, {25, 0, 0}),
+        BASE(1, 5, {0, 0, 0}, {-35, 0, 0}, {30, 0, -20}),
+        ACCENT(6, 3, {0, 0, 0}, {-10, 0, 0}, {10, 0, 0})
     },
     [SPECIES_IVYSAUR] = {
-        BASE(6, 4, {0, 0, 0}, {-25, 0, 0}, {25, 0, 0}),
+        BASE(1, 4, {0, 0, 0}, {-35, 0, 0}, {30, 0, -20}),
+        ACCENT(5, 3, {0, 0, 0}, {-10, 0, 0}, {10, 0, 0})
     },
     [SPECIES_VENUSAUR] = {
-        BASE(1, 4, {0, 0, 0}, {-25, 0, 0}, {25, 0, 0}),
+        BASE(1, 4, {0, 0, 0}, {-35, 0, -20}, {30, 0, -20}),
+        ACCENT(5, 3, {0, 0, 0}, {-10, 0, 0}, {10, 0, 0})
     },
     [SPECIES_CHARMANDER] = {
-        BASE(5, 4, {0, 0, 0}, {-30, -10, 0}, {12, 20, -20}),
+        BASE(1, 4, {0, 0, 0}, {-20, 10, 0}, {12, 20, -20}),
     },
     [SPECIES_CHARMELEON] = {
-        BASE(4, 4, {-25, 0, 20}, {-50, -20, 30}, {0, 0, 0}),
+        BASE(1, 4, {-12, -10, 20}, {-30, -15, 25}, {0, 0, 0}),
     },
     [SPECIES_CHARIZARD] = {
-        BASE(7, 3, {0, 0, 0}, {-30, -10, 20}, {15, 20, -20}),
+        BASE(3, 3, {0, 0, 0}, {-20, 10, 10}, {15, 20, -20}),
     },
     [SPECIES_SQUIRTLE] = {
-        BASE(11, 5, {0, 0, 0}, {-60, 0, 0}, {60, 0, 0}),
+        BASE(5, 4, {0, 0, 0}, {25, 20, -10}, {50, 20, 0}, {-60, 10, -20}),
     },
     [SPECIES_WARTORTLE] = {
-        BASE(6, 4, {0, 0, 0}, {-60, 0, 0}, {60, 0, 0}),
+        BASE(3, 4, {0, 0, 0}, {50, 0, 0}, {85, 0, 0}, {-30, 0, 0}),
     },
     [SPECIES_BLASTOISE] = {
-        BASE(1, 4, {0, 0, 0}, {-60, 0, 0}, {60, 0, 0}),
+        BASE(5, 5, {0, 0, 0}, {50, 0, 0}, {80, 0, 0}, {-30, 0, 0}),
     },
     [SPECIES_EEVEE] = {
         BASE(1, 15, {0, 0, 0}, {-30, 0, 20}, {0, 0, 0}),
@@ -92,21 +95,33 @@ static const struct SpeciesVariant gSpeciesVariants[NUM_SPECIES] =
 static const struct SpeciesVariant gSpeciesShinyVariants[NUM_SPECIES] = 
 {
   [SPECIES_BULBASAUR] = {
-      BASE(2, 5, {0, 0, 0}, {30, 0, 0}, {-30, 0, 0}),
+      BASE(10, 3, {0, 0, 0}, {25, 0, 20}, {-30, 0, -20}),
   },
   [SPECIES_IVYSAUR] = {
-      BASE(6, 4, {0, 0, 0}, {30, 0, 0}, {-30, 0, 0}),
+      BASE(9, 4, {0, 0, 0}, {25, 0, 20}, {-30, 0, -20}),
   },
   [SPECIES_VENUSAUR] = {
-      BASE(1, 4, {0, 0, 0}, {30, 0, 0}, {-30, 0, 0}),
+      BASE(9, 4, {0, 0, 0}, {25, 0, 20}, {-30, 0, -20}),
   },
   [SPECIES_CHARMANDER] = {
-    BASE(9, 6, {0, 0, 0}, {128, 0, 0}, {64, 0, 0}),
+    BASE(7, 6, {0, 0, 0}, {128, 0, 0}, {64, 0, 0}, {32, 0, 0}),
   },
   [SPECIES_CHARMELEON] = {
-    BASE(13, 3, {0, 0, 0}, {128, 0, 0}, {64, 0, 0}),
+    BASE(7, 4, {0, 0, 0}, {128, 0, 0}, {64, 0, 0}, {32, 0, 0}),
   },
   [SPECIES_CHARIZARD] = {
-    BASE(11, 5, {0, 0, 0}, {128, 0, 0}, {64, 0, 0}),
+    BASE(6, 5, {0, 0, 0}, {128, 0, 0}, {64, 0, 0}, {32, 0, 0}),
+  },
+  [SPECIES_SQUIRTLE] = {
+    BASE(5, 4, {0, 0, 0}, {0, -65, 20}),
+    ACCENT(11, 3, {0, 0, 0}, {0, -40, 20}),
+  },
+  [SPECIES_WARTORTLE] = {
+    BASE(3, 4, {0, 0, 0}, {0, -65, 20}),
+    ACCENT(9, 3, {0, 0, 0}, {0, -40, 20}),  
+  },
+  [SPECIES_BLASTOISE] = {
+    BASE(5, 5, {0, 0, 0}, {0, -75, 20}),
+    ACCENT(14, 2, {0, 0, 0}, {0, -40, 20}),
   },
 };
