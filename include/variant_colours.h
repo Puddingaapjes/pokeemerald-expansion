@@ -85,6 +85,12 @@ static const struct SpeciesVariant gSpeciesVariants[NUM_SPECIES] =
     [SPECIES_BLASTOISE] = {
         BASE(5, 5, {0, 0, 0}, {50, 0, 0}, {80, 0, 0}, {-30, 0, 0}),
     },
+    [SPECIES_CATERPIE] = {
+        BASE(2, 6, {0, 0, 0}, {-22, 0, 0}, {30, 0, 0}),
+    },
+    [SPECIES_METAPOD] = {
+        BASE(2, 6, {0, 0, 0}, {-22, 0, 0}, {30, 0, 0}),
+    },
     [SPECIES_EEVEE] = {
         BASE(1, 15, {0, 0, 0}, {-30, 0, 20}, {0, 0, 0}),
     },
