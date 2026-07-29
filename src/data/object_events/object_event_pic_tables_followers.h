@@ -63,16 +63,6 @@ static const struct SpriteFrameImage sPicTable_CharizardMegaY[] = {
 static const struct SpriteFrameImage sPicTable_Squirtle[] = {
     overworld_ascending_frames(gObjectEventPic_Squirtle, 4, 4),
 };
-
-static const struct SpriteFrameImage sPicTable_SquirtleSurfing[] = {
-    overworld_frame(gObjectEventPic_SquirtleSurfing, 4, 4, 0),
-    overworld_frame(gObjectEventPic_SquirtleSurfing, 4, 4, 1),
-    overworld_frame(gObjectEventPic_SquirtleSurfing, 4, 4, 2),
-    overworld_frame(gObjectEventPic_SquirtleSurfing, 4, 4, 3),
-    overworld_frame(gObjectEventPic_SquirtleSurfing, 4, 4, 4),
-    overworld_frame(gObjectEventPic_SquirtleSurfing, 4, 4, 5),
-};
-
 static const struct SpriteFrameImage sPicTable_Wartortle[] = {
     overworld_ascending_frames(gObjectEventPic_Wartortle, 4, 4),
 };

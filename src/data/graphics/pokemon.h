@@ -315,6 +315,7 @@ const u32 gObjectEventPic_Substitute[] = INCGFX_COMP("graphics/pokemon/question_
 #endif //P_FOOTPRINTS
 #if OW_POKEMON_OBJECT_EVENTS
     const u32 gObjectEventPic_Wartortle[] = INCGFX_COMP("graphics/pokemon/wartortle/overworld.png", ".4bpp", "-mwidth 4 -mheight 4");
+    const u32 gObjectEventPic_WartortleSurfing[] = INCGFX_U32("graphics/pokemon/wartortle/surf.png", ".4bpp", "-mwidth 4 -mheight 4");
 #if OW_PKMN_OBJECTS_SHARE_PALETTES == FALSE
     const u16 gOverworldPalette_Wartortle[] = INCGFX_U16("graphics/pokemon/wartortle/overworld_normal.pal", ".gbapal");
     const u16 gShinyOverworldPalette_Wartortle[] = INCGFX_U16("graphics/pokemon/wartortle/overworld_shiny.pal", ".gbapal");
@@ -342,6 +343,7 @@ const u32 gObjectEventPic_Substitute[] = INCGFX_COMP("graphics/pokemon/question_
 #endif //P_FOOTPRINTS
 #if OW_POKEMON_OBJECT_EVENTS
     const u32 gObjectEventPic_Blastoise[] = INCGFX_COMP("graphics/pokemon/blastoise/overworld.png", ".4bpp", "-mwidth 4 -mheight 4");
+    const u32 gObjectEventPic_BlastoiseSurfing[] = INCGFX_U32("graphics/pokemon/blastoise/surf.png", ".4bpp", "-mwidth 4 -mheight 4");
 #if OW_PKMN_OBJECTS_SHARE_PALETTES == FALSE
     const u16 gOverworldPalette_Blastoise[] = INCGFX_U16("graphics/pokemon/blastoise/overworld_normal.pal", ".gbapal");
     const u16 gShinyOverworldPalette_Blastoise[] = INCGFX_U16("graphics/pokemon/blastoise/overworld_shiny.pal", ".gbapal");
