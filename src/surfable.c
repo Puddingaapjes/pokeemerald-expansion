@@ -68,7 +68,7 @@ static void LoadSurfOverworldPalette(void)
 
     i = VarGet(VAR_SURF_MON_SLOT);
 
-    if (IsMonShiny(&gPlayerParty[i]) == TRUE)
+    if (IsMonShiny(&gParties[B_TRAINER_PLAYER][i]) == TRUE)
         LoadSpritePalette(&sSurfablePokemonShinyPalettes[sCurrentSurfMon]);
     else
         LoadSpritePalette(&sSurfablePokemonPalettes[sCurrentSurfMon]);
