@@ -9608,6 +9608,13 @@ const struct SpeciesInfo gSpeciesInfoGen1[] =
         .teachableLearnset = sTentacoolTeachableLearnset,
         .eggMoveLearnset = sTentacoolEggMoveLearnset,
         .evolutions = EVOLUTION({EVO_LEVEL, 30, SPECIES_TENTACRUEL}),
+        OVERWORLD_SURFING(
+            sPicTable_TentacoolSurfing,
+            SIZE_32x32,
+            SHADOW_SIZE_M,
+            TRACKS_FOOT,
+            sAnimTable_OverworldSurfing
+        )
     },
 
     [SPECIES_TENTACRUEL] =
