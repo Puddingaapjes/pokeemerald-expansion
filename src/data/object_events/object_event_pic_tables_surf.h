@@ -27,7 +27,7 @@ static const struct SpriteFrameImage sPicTable_BlastoiseSurfing[] = {
     overworld_frame(gObjectEventPic_BlastoiseSurfing, 4, 4, 5),
 };
 
-Static const struct SpriteFrameImage sPicTable_TentacoolSurfing[] = {
+static const struct SpriteFrameImage sPicTable_TentacoolSurfing[] = {
     overworld_frame(gObjectEventPic_TentacoolSurfing, 4, 4, 0),
     overworld_frame(gObjectEventPic_TentacoolSurfing, 4, 4, 1),
     overworld_frame(gObjectEventPic_TentacoolSurfing, 4, 4, 2),
