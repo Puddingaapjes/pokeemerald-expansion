@@ -201,7 +201,7 @@ static void SetSpriteDataForNormalStep(struct Sprite *, enum Direction, u8);
 static void InitSpriteForFigure8Anim(struct Sprite *);
 static bool8 AnimateSpriteInFigure8(struct Sprite *);
 enum Direction GetDirectionToFace(s16 x1, s16 y1, s16 x2, s16 y2);
-static u32 LoadDynamicFollowerPalette(enum Species species, bool32 shiny, bool32 female, struct ObjectEvent *owe);
+static u32 LoadDynamicFollowerPalette(enum Species species, bool32 shiny, bool32 female, bool32 surfing, struct ObjectEvent *owe);
 static void FollowerSetGraphics(struct ObjectEvent *objEvent, enum Species species, bool32 shiny, bool32 female, bool32 surfing);
 static void ObjectEventSetGraphics(struct ObjectEvent *, const struct ObjectEventGraphicsInfo *);
 static void SpriteCB_VirtualObject(struct Sprite *);
@@ -1875,7 +1875,7 @@ static u8 TrySetupObjectEventSprite(const struct ObjectEventTemplate *objectEven
     sprite = &gSprites[spriteId];
     // Use palette from species palette table
     if (spriteTemplate->paletteTag == OBJ_EVENT_PAL_TAG_DYNAMIC)
-        sprite->oam.paletteNum = LoadDynamicFollowerPalette(OW_SPECIES(objectEvent), OW_SHINY(objectEvent), OW_FEMALE(objectEvent), objectEvent);
+        sprite->oam.paletteNum = LoadDynamicFollowerPalette(OW_SPECIES(objectEvent), OW_SHINY(objectEvent), OW_FEMALE(objectEvent), OW_SURFING(objectEvent), objectEvent);
     if (OW_GFX_COMPRESS && sprite->usingSheet)
         sprite->sheetSpan = GetSpanPerImage(sprite->oam.shape, sprite->oam.size);
     GetMapCoordsFromSpritePos(objectEvent->currentCoords.x + cameraX, objectEvent->currentCoords.y + cameraY, &sprite->x, &sprite->y);
@@ -1994,7 +1994,8 @@ static u32 LoadDynamicFollowerPaletteFromGraphicsId(u16 graphicsId, struct Sprit
     enum Species species = graphicsId & OBJ_EVENT_MON_SPECIES_MASK;
     bool32 shiny = graphicsId & OBJ_EVENT_MON_SHINY;
     bool32 female = graphicsId & OBJ_EVENT_MON_FEMALE;
-    u8 paletteNum = LoadDynamicFollowerPalette(species, shiny, female, NULL);
+    bool32 surfing = graphicsId & OBJ_EVENT_MON_SURFING;
+    u8 paletteNum = LoadDynamicFollowerPalette(species, shiny, female, FALSE, NULL);
     if (template)
         template->paletteTag = GetGraphicsIdForMon(species, shiny, female, FALSE);
 
@@ -2184,7 +2185,7 @@ const struct ObjectEventGraphicsInfo *SpeciesToGraphicsInfo(enum Species species
 }
 
 // Find, or load, the palette for the specified Pokémon info
-static u32 LoadDynamicFollowerPalette(enum Species species, bool32 shiny, bool32 female, struct ObjectEvent *owe)
+static u32 LoadDynamicFollowerPalette(enum Species species, bool32 shiny, bool32 female, bool32 surfing, struct ObjectEvent *owe)
 {
     u32 paletteNum;
     u32 personality;
@@ -2200,9 +2201,9 @@ static u32 LoadDynamicFollowerPalette(enum Species species, bool32 shiny, bool32
 
     // Use standalone palette, unless entry is OOB or NULL (fallback to front-sprite-based)
 #if OW_POKEMON_OBJECT_EVENTS == TRUE && OW_PKMN_OBJECTS_SHARE_PALETTES == FALSE
-
-    if ((shiny && gSpeciesInfo[species].overworldPalette)
-    || (!shiny && gSpeciesInfo[species].overworldShinyPalette))
+    if (!surfing 
+    && ((shiny && gSpeciesInfo[species].overworldPalette)
+    || (!shiny && gSpeciesInfo[species].overworldShinyPalette)))
     {
     
     const u16 *base = NULL;
@@ -2294,7 +2295,7 @@ static void FollowerSetGraphics(struct ObjectEvent *objEvent, enum Species speci
         sprite->inUse = FALSE;
         FieldEffectFreePaletteIfUnused(sprite->oam.paletteNum);
         sprite->inUse = TRUE;
-        sprite->oam.paletteNum = LoadDynamicFollowerPalette(species, shiny, female, objEvent);
+        sprite->oam.paletteNum = LoadDynamicFollowerPalette(species, shiny, female, surfing, objEvent);
     }
 }
 
@@ -2335,7 +2336,7 @@ static void RefreshFollowerGraphics(struct ObjectEvent *objEvent)
         sprite->inUse = FALSE;
         FieldEffectFreePaletteIfUnused(sprite->oam.paletteNum);
         sprite->inUse = TRUE;
-        sprite->oam.paletteNum = LoadDynamicFollowerPalette(species, shiny, female, objEvent);
+        sprite->oam.paletteNum = LoadDynamicFollowerPalette(species, shiny, female, surfing, objEvent);
     }
     else if (i != 0xFF)
     {
@@ -3062,7 +3063,7 @@ static void SpawnObjectEventOnReturnToField(u8 objectEventId, s16 x, s16 y)
 
     if (spriteTemplate.paletteTag == OBJ_EVENT_PAL_TAG_DYNAMIC)
     {
-        u32 paletteNum = LoadDynamicFollowerPalette(OW_SPECIES(objectEvent), OW_SHINY(objectEvent), OW_FEMALE(objectEvent), objectEvent);
+        u32 paletteNum = LoadDynamicFollowerPalette(OW_SPECIES(objectEvent), OW_SHINY(objectEvent), OW_FEMALE(objectEvent), OW_SURFING(objectEvent), objectEvent);
         spriteTemplate.paletteTag = GetSpritePaletteTagByPaletteNum(paletteNum);
     }
     else if (spriteTemplate.paletteTag != TAG_NONE)
