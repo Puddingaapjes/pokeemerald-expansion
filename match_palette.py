@@ -39,19 +39,37 @@ there.
 Example:
     python3 match_palette.py --folder graphics/pokemon/torchic
     python3 match_palette.py --folder graphics/pokemon/torchic --out /tmp/preview
+
+=======================
+ USAGE 3: root mode
+=======================
+    python3 match_palette.py --root POKEMON_DIR [--out OUT_DIR] [--workers N]
+
+Walks every immediate subdirectory of POKEMON_DIR, treating each one as a
+species folder, and runs folder-mode processing on all of them.  Skips
+subdirectories that contain no recognised source sprite and reports them at
+the end.
+
+Use --workers to parallelise across CPU cores (default: 4).  Set to 1 to
+get fully sequential output, which is easier to read when debugging.
+
+Example:
+    python3 match_palette.py --root graphics/pokemon
+    python3 match_palette.py --root graphics/pokemon --out /tmp/preview --workers 8
 """
 
 import argparse
 import io
 import struct
 import sys
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 
 from PIL import Image
 
 # Filenames to look for, in priority order, for each role.
 SOURCE_CANDIDATES = ["anim_front.png", "front.png"]
-TARGET_CANDIDATES = ["anim_back.png", "back.png", "overworld.png", "follower.png", "icon.png"]
+TARGET_CANDIDATES = ["anim_back.png", "back.png", "overworld.png", "icon.png", "anim_frontf.png", "backf.png", "surf.png" ]
 
 # PNG chunk types that actually matter for a simple indexed sprite. Anything
 # else (zTXt/tEXt/iTXt comments, iCCP color profiles, bKGD, pHYs, tIME, etc.)
@@ -374,6 +392,111 @@ def process_folder(folder: str, out_dir: str | None, skip: set[str] = frozenset(
               f"(looked for {', '.join(TARGET_CANDIDATES)}).")
 
 
+# ---------------------------------------------------------------------------
+# Root mode helpers
+# ---------------------------------------------------------------------------
+
+def _process_folder_worker(args: tuple[Path, Path | None, set[str]]) -> tuple[str, str | None]:
+    """Top-level function (required for ProcessPoolExecutor pickling).
+
+    Returns (species_name, error_message_or_None).
+    """
+    folder_path, out_dir, skip = args
+    try:
+        out_arg = str(out_dir / folder_path.name) if out_dir else None
+        process_folder(str(folder_path), out_arg, skip=skip)
+        return folder_path.name, None
+    except SystemExit as e:
+        # process_folder calls sys.exit() on hard errors; capture the message.
+        return folder_path.name, str(e)
+    except Exception as e:
+        return folder_path.name, f"{type(e).__name__}: {e}"
+
+
+def process_root(root: str,
+                 out_dir: str | None,
+                 skip: set[str] = frozenset(),
+                 workers: int = 4) -> None:
+    """Walk every immediate subdirectory of `root` and run process_folder on
+    each one that contains a recognised source sprite.
+
+    Species folders that have no source sprite are skipped silently and
+    collected in a summary at the end.  Errors in individual species are
+    reported but do not abort the rest of the run.
+    """
+    root_path = Path(root)
+    if not root_path.is_dir():
+        sys.exit(f"Error: '{root}' is not a directory.")
+
+    out_path = Path(out_dir) if out_dir else None
+
+    # Collect candidate subdirectories (non-recursive; one level only).
+    species_dirs = sorted(p for p in root_path.iterdir() if p.is_dir())
+    if not species_dirs:
+        sys.exit(f"Error: no subdirectories found in '{root}'.")
+
+    # Pre-filter: only keep folders that actually have a source sprite, so we
+    # don't spin up workers for empty / irrelevant subdirectories.
+    runnable: list[Path] = []
+    no_source: list[str] = []
+    for sp in species_dirs:
+        has_source = any((sp / c).exists() for c in SOURCE_CANDIDATES)
+        if has_source:
+            runnable.append(sp)
+        else:
+            no_source.append(sp.name)
+
+    total = len(runnable)
+    print(f"Found {total} species folder(s) with a source sprite "
+          f"(skipping {len(no_source)} without one).\n")
+
+    if total == 0:
+        print("Nothing to do.")
+        return
+
+    errors: list[tuple[str, str]] = []
+    done = 0
+
+    work_items = [(sp, out_path, skip) for sp in runnable]
+
+    if workers == 1:
+        # Sequential — easier to read output when debugging.
+        for item in work_items:
+            name, err = _process_folder_worker(item)
+            done += 1
+            print(f"[{done}/{total}] {name} {'ERROR' if err else 'OK'}")
+            if err:
+                errors.append((name, err))
+    else:
+        with ProcessPoolExecutor(max_workers=workers) as executor:
+            future_to_name = {
+                executor.submit(_process_folder_worker, item): item[0].name
+                for item in work_items
+            }
+            for future in as_completed(future_to_name):
+                name, err = future.result()
+                done += 1
+                print(f"[{done}/{total}] {name} {'ERROR' if err else 'OK'}")
+                if err:
+                    errors.append((name, err))
+
+    # Summary
+    print("\n" + "=" * 60)
+    print(f"Done. {total - len(errors)}/{total} species processed successfully.")
+
+    if no_source:
+        print(f"\nSkipped (no source sprite): {', '.join(sorted(no_source))}")
+
+    if errors:
+        print(f"\nErrors ({len(errors)}):")
+        for name, msg in sorted(errors):
+            print(f"  {name}: {msg}")
+
+
+# ---------------------------------------------------------------------------
+# CLI
+# ---------------------------------------------------------------------------
+
 def main():
     parser = argparse.ArgumentParser(
         description="Re-index PNGs to share one source palette (pokeemerald-expansion style).",
@@ -381,7 +504,12 @@ def main():
         epilog=__doc__,
     )
     parser.add_argument("--folder", help="Species folder to process (folder mode).")
-    parser.add_argument("--out", help="Output directory for folder mode (default: overwrite in place).")
+    parser.add_argument("--root",
+                        help="Root pokemon directory containing species subfolders (root mode). "
+                             "Processes every species at once.")
+    parser.add_argument("--out", help="Output directory (folder/root mode; default: overwrite in place).")
+    parser.add_argument("--workers", type=int, default=4,
+                        help="Parallel worker processes for root mode (default: 4, use 1 for sequential).")
     parser.add_argument("--skip", help="Comma-separated target filenames to skip, e.g. --skip icon.png "
                                         "or --skip icon.png,follower.png")
     parser.add_argument("positional", nargs="*", help="SOURCE.png TARGET.png OUTPUT.png (single-pair mode).")
@@ -392,7 +520,9 @@ def main():
     if args.skip:
         skip = {name.strip() for name in args.skip.split(",") if name.strip()}
 
-    if args.folder:
+    if args.root:
+        process_root(args.root, args.out, skip=skip, workers=args.workers)
+    elif args.folder:
         process_folder(args.folder, args.out, skip=skip)
     elif len(args.positional) == 3:
         source_path, target_path, output_path = args.positional

@@ -4654,7 +4654,7 @@ static void CreateMovingMonIcon(void)
     bool32 isEgg = GetMonData(&sStorage->movingMon, MON_DATA_IS_EGG);
     bool8 isShiny = GetMonData(&sStorage->movingMon, MON_DATA_IS_SHINY);
 
-    LoadSpritePaletteWithTag(GetIconPalette(species, isShiny, IsPersonalityFemale(species, personality)), PALTAG_MOVING_MON);
+    LoadSpritePaletteWithTag(GetIconPalette(species, personality, isShiny, IsPersonalityFemale(species, personality)), PALTAG_MOVING_MON);
     sStorage->movingMonPalOffset = OBJ_PLTT_ID(IndexOfSpritePaletteTag(PALTAG_MOVING_MON));
 
     sStorage->movingMonSprite = CreateMonIconSprite(species, personality, 0, 0, priority, 7, isEgg);
