@@ -21,20 +21,21 @@ enum Species GetIconSpecies(enum Species species, u32 personality);
 u16 GetUnownLetterByPersonality(u32 personality);
 enum Species GetIconSpeciesNoPersonality(enum Species species);
 void LoadMonIconPalettes(void);
-void LoadMonIconPalette(enum Species species);
 void FreeMonIconPalettes(void);
 u8 CreateMonIconNoPersonality(enum Species species, void (*callback)(struct Sprite *), s16 x, s16 y, u8 subpriority);
 u8 CreateMonIconNoPersonalityIsEgg(enum Species species, void (*callback)(struct Sprite *), s16 x, s16 y, u8 subpriority, bool32 isEgg);
-void FreeMonIconPalette(enum Species species);
 void FreeAndDestroyMonIconSprite(struct Sprite *sprite);
+const u16 * GetIconPalette(enum Species species, bool32 isShiny, bool32 female);
+const u32 GetIconPalTag(enum Species species, bool32 isShiny);
+u32 FindFreeIconPaletteSlot(u16 tag);
 u8 CreateMonIcon(enum Species species, void (*callback)(struct Sprite *), s16 x, s16 y, u8 subpriority, u32 personality);
+u8 CreateMonIcon2(enum Species species, void (*callback)(struct Sprite *), s16 x, s16 y, u8 subpriority, bool32 isShiny, u32 personality, bool32 isEgg);
+u8 CreateMonIcon3(enum Species species, void (*callback)(struct Sprite *), s16 x, s16 y, u8 subpriority, u32 personality, u8 paletteNum, bool32 isEgg);
+void SetMonIconPalette(struct Pokemon *, struct Sprite *, u8);
 u8 CreateMonIconIsEgg(enum Species species, void (*callback)(struct Sprite *), s16 x, s16 y, u8 subpriority, u32 personality, bool32 isEgg);
 u8 UpdateMonIconFrame(struct Sprite *sprite);
-void LoadMonIconPalette(enum Species species);
-void LoadMonIconPalettePersonality(enum Species species, u32 personality);
 void SpriteCB_MonIcon(struct Sprite *sprite);
 void SetPartyHPBarSprite(struct Sprite *sprite, u8 animNum);
 u8 GetMonIconPaletteIndexFromSpecies(enum Species species);
-void SafeFreeMonIconPalette(enum Species species);
 
 #endif // GUARD_POKEMON_ICON_H
