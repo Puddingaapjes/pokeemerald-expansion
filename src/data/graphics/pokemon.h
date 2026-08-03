@@ -21516,11 +21516,21 @@ const u32 gObjectEventPic_Substitute[] = INCGFX_COMP("graphics/pokemon/question_
 #endif //OW_PKMN_OBJECTS_SHARE_PALETTES
 #endif //OW_POKEMON_OBJECT_EVENTS
 
+<<<<<<< Updated upstream
     const u32 gMonFrontPic_Brionne[] = INCGFX_U32("graphics/pokemon/brionne/anim_front.png", ".4bpp.smol");
     const u16 gMonPalette_Brionne[] = INCGFX_U16("graphics/pokemon/brionne/normal.pal", ".gbapal");
     const u32 gMonBackPic_Brionne[] = INCGFX_U32("graphics/pokemon/brionne/back.png", ".4bpp.smol");
     const u16 gMonShinyPalette_Brionne[] = INCGFX_U16("graphics/pokemon/brionne/shiny.pal", ".gbapal");
     const u8 gMonIcon_Brionne[] = INCGFX_U8("graphics/pokemon/brionne/icon.png", ".4bpp");
+=======
+    const u32 gMonFrontPic_Brionne[] = INCBIN_U32("graphics/pokemon/brionne/anim_front.4bpp.smol");
+    const u16 gMonPalette_Brionne[] = INCBIN_U16("graphics/pokemon/brionne/normal.gbapal");
+    const u32 gMonBackPic_Brionne[] = INCBIN_U32("graphics/pokemon/brionne/back.4bpp.smol");
+    const u16 gMonShinyPalette_Brionne[] = INCBIN_U16("graphics/pokemon/brionne/shiny.gbapal");
+    const u8 gMonIcon_Brionne[] = INCBIN_U8("graphics/pokemon/brionne/icon.4bpp");
+    const u16 gMonIconPalette_Brionne[] = INCBIN_U16("graphics/pokemon/brionne/icon_normal.gbapal");
+    const u16 gMonShinyIconPalette_Brionne[] = INCBIN_U16("graphics/pokemon/brionne/icon_shiny.gbapal");
+>>>>>>> Stashed changes
 #if P_FOOTPRINTS
     const u8 gMonFootprint_Brionne[] = INCGFX_U8("graphics/pokemon/brionne/footprint.png", ".1bpp");
 #endif //P_FOOTPRINTS
