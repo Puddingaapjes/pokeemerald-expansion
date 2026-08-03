@@ -449,7 +449,12 @@ u32 CreateSpriteUnchecked(const struct SpriteTemplate *template, s16 x, s16 y, u
 u32 CreateSpriteAtEnd(const struct SpriteTemplate *template, s16 x, s16 y, u32 subpriority)
 {
     u32 spriteId = CreateSpriteAtEndUnchecked(template, x, y, subpriority);
-    fatal_assertf(spriteId < MAX_SPRITES, "Out of sprite slots");
+
+#if DEBUG
+    if (spriteId >= MAX_SPRITES)
+        MgbaPrintf(MGBA_LOG_ERROR, "Out of sprite slots");
+#endif
+
     return spriteId;
 }
 
@@ -1715,8 +1720,11 @@ u32 IndexOfSpritePaletteTag(u16 tag)
 {
     u32 i;
     for (i = gReservedSpritePaletteCount; i < 16; i++)
+    {
+        //DebugPrintf("test: %d", sSpritePaletteTags[i]);
         if (sSpritePaletteTags[i] == tag)
             return i;
+    }
 
     return 0xFF;
 }
@@ -1724,6 +1732,16 @@ u32 IndexOfSpritePaletteTag(u16 tag)
 u16 GetSpritePaletteTagByPaletteNum(u8 paletteNum)
 {
     return sSpritePaletteTags[paletteNum];
+}
+
+u16 SetSpritePaletteTagByPaletteNum(u8 paletteNum, u16 tag) {
+    u16 oldTag = sSpritePaletteTags[paletteNum];
+    sSpritePaletteTags[paletteNum] = tag;
+    #if DEBUG
+    if (tag == TAG_NONE)
+        FillPalette(0, paletteNum * 16 + 0x100, 32);
+    #endif
+    return oldTag;
 }
 
 void FreeSpritePaletteByTag(u16 tag)
