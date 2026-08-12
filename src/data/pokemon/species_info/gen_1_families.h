@@ -871,7 +871,7 @@ const struct SpeciesInfo gSpeciesInfoGen1[] =
         .eggMoveLearnset = sSquirtleEggMoveLearnset,
         .evolutions = EVOLUTION({EVO_LEVEL, 16, SPECIES_WARTORTLE}),
         OVERWORLD_SURFING(
-            sPicTable_SquirtleSurfing,
+            sPicTableSurfing_Squirtle,
             SIZE_32x32,
             SHADOW_SIZE_M,
             TRACKS_FOOT,
@@ -947,7 +947,7 @@ const struct SpeciesInfo gSpeciesInfoGen1[] =
         .teachableLearnset = sWartortleTeachableLearnset,
         .evolutions = EVOLUTION({EVO_LEVEL, 36, SPECIES_BLASTOISE}),
         OVERWORLD_SURFING(
-            sPicTable_WartortleSurfing,
+            sPicTableSurfing_Wartortle,
             SIZE_32x32,
             SHADOW_SIZE_M,
             TRACKS_FOOT,
@@ -1035,7 +1035,7 @@ const struct SpeciesInfo gSpeciesInfoGen1[] =
         .formSpeciesIdTable = sBlastoiseFormSpeciesIdTable,
         .formChangeTable = sBlastoiseFormChangeTable,
         OVERWORLD_SURFING(
-            sPicTable_BlastoiseSurfing,
+            sPicTableSurfing_Blastoise,
             SIZE_32x32,
             SHADOW_SIZE_M,
             TRACKS_FOOT,
@@ -9609,7 +9609,7 @@ const struct SpeciesInfo gSpeciesInfoGen1[] =
         .eggMoveLearnset = sTentacoolEggMoveLearnset,
         .evolutions = EVOLUTION({EVO_LEVEL, 30, SPECIES_TENTACRUEL}),
         OVERWORLD_SURFING(
-            sPicTable_TentacoolSurfing,
+            sPicTableSurfing_Tentacool,
             SIZE_32x32,
             SHADOW_SIZE_M,
             TRACKS_FOOT,
