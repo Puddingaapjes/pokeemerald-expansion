@@ -200,7 +200,6 @@ static void SetSpriteDataForNormalStep(struct Sprite *, enum Direction, u8);
 static void InitSpriteForFigure8Anim(struct Sprite *);
 static bool8 AnimateSpriteInFigure8(struct Sprite *);
 enum Direction GetDirectionToFace(s16 x1, s16 y1, s16 x2, s16 y2);
-static u32 LoadDynamicFollowerPalette(enum Species species, bool32 shiny, bool32 female, bool32 surfing);
 static void FollowerSetGraphics(struct ObjectEvent *objEvent, enum Species species, bool32 shiny, bool32 female, bool32 surfing);
 static void ObjectEventSetGraphics(struct ObjectEvent *, const struct ObjectEventGraphicsInfo *);
 static void SpriteCB_VirtualObject(struct Sprite *);
@@ -1993,7 +1992,6 @@ static u32 LoadDynamicFollowerPaletteFromGraphicsId(u16 graphicsId, struct Sprit
     enum Species species = graphicsId & OBJ_EVENT_MON_SPECIES_MASK;
     bool32 shiny = graphicsId & OBJ_EVENT_MON_SHINY;
     bool32 female = graphicsId & OBJ_EVENT_MON_FEMALE;
-    bool32 surfing = graphicsId & OBJ_EVENT_MON_SURFING;
     u8 paletteNum = LoadDynamicFollowerPalette(species, shiny, female, FALSE);
     if (template)
         template->paletteTag = GetGraphicsIdForMon(species, shiny, female, FALSE);
@@ -2184,7 +2182,7 @@ const struct ObjectEventGraphicsInfo *SpeciesToGraphicsInfo(enum Species species
 }
 
 // Find, or load, the palette for the specified Pokémon info
-static u32 LoadDynamicFollowerPalette(enum Species species, bool32 shiny, bool32 female, bool32 surfing)
+u32 LoadDynamicFollowerPalette(enum Species species, bool32 shiny, bool32 female, bool32 surfing)
 {
     u32 paletteNum;
     // Use standalone palette, unless entry is OOB or NULL (fallback to front-sprite-based)
@@ -2225,16 +2223,34 @@ static u32 LoadDynamicFollowerPalette(enum Species species, bool32 shiny, bool32
     else
 #endif //OW_POKEMON_OBJECT_EVENTS == TRUE && OW_PKMN_OBJECTS_SHARE_PALETTES == FALSE
     {
-        // Note that the shiny palette tag is `species + SPECIES_SHINY_TAG`, which must be increased with more Pokémon
-        // so that palette tags do not overlap
-        const u16 *palette = GetMonSpritePalFromSpecies(species, shiny, female); //ETODO
+        struct SpritePalette spritePalette;
+        u16 palTag = species + OBJ_EVENT_MON + (shiny ? OBJ_EVENT_MON_SHINY : 0);
+    #if P_GENDER_DIFFERENCES
+        if (female && gSpeciesInfo[species].shinyPaletteFemale != NULL)
+            palTag += OBJ_EVENT_MON_FEMALE;
+    #endif
         // palette already loaded
-        if ((paletteNum = IndexOfSpritePaletteTag(species)) < 16)
+        if ((paletteNum = IndexOfSpritePaletteTag(palTag)) < 16)
             return paletteNum;
-        // Use matching front sprite's normal/shiny palettes
-        // Load compressed palette
-        LoadSpritePaletteWithTag(palette, species);
-        paletteNum = IndexOfSpritePaletteTag(species); // Tag is always present
+        spritePalette.tag = palTag;
+    #if P_GENDER_DIFFERENCES
+        if (female && gSpeciesInfo[species].paletteFemale != NULL)
+        {
+            if (shiny)
+                spritePalette.data = gSpeciesInfo[species].shinyPaletteFemale;
+            else
+                spritePalette.data = gSpeciesInfo[species].paletteFemale;
+        }
+        else
+    #endif
+        {
+            if (shiny)
+                spritePalette.data = gSpeciesInfo[species].shinyPalette;
+            else
+                spritePalette.data = gSpeciesInfo[species].palette;
+        }
+
+        paletteNum = LoadSpritePalette(&spritePalette);
     }
 
     if (gWeatherPtr->currWeather != WEATHER_FOG_HORIZONTAL) // don't want to weather blend in fog

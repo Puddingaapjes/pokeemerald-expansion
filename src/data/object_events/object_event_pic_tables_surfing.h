@@ -1,5 +1,6 @@
 #if OW_POKEMON_OBJECT_EVENTS
 
+#if P_GEN_1_POKEMON
 static const struct SpriteFrameImage sPicTableSurfing_Squirtle[] = {
     overworld_frame(gObjectEventPicSurfing_Squirtle, 4, 4, 0),
     overworld_frame(gObjectEventPicSurfing_Squirtle, 4, 4, 1),
@@ -791,9 +792,8 @@ static const struct SpriteFrameImage sPicTableSurfingOverlay_Mew[] = {
     overworld_frame(gObjectEventPicSurfing_Mew, 4, 4, 10),
     overworld_frame(gObjectEventPicSurfing_Mew, 4, 4, 11),
 };
-
-// Gen II Pokemon
-
+#endif 
+#if P_GEN_8_POKEMON
 static const struct SpriteFrameImage sPicTableSurfing_Totodile[] = {
     overworld_frame(gObjectEventPicSurfing_Totodile, 4, 4, 0),
     overworld_frame(gObjectEventPicSurfing_Totodile, 4, 4, 1),
@@ -1248,7 +1248,8 @@ static const struct SpriteFrameImage sPicTableSurfingOverlay_Lugia[] = {
     overworld_frame(gObjectEventPicSurfing_Lugia, 8, 8, 11),
 };
 
-// Gen III Pokemon
+#endif 
+#if P_GEN_3_POKEMON
 
 static const struct SpriteFrameImage sPicTableSurfing_Mudkip[] = {
     overworld_frame(gObjectEventPicSurfing_Mudkip, 4, 4, 0),
@@ -1963,7 +1964,8 @@ static const struct SpriteFrameImage sPicTableSurfingOverlay_Rayquaza[] = {
     overworld_frame(gObjectEventPicSurfing_Rayquaza, 8, 8, 11),
 };
 
-// Gen IV Pokemon
+#endif 
+#if P_GEN_4_POKEMON
 
 static const struct SpriteFrameImage sPicTableSurfing_Piplup[] = {
     overworld_frame(gObjectEventPicSurfing_Piplup, 4, 4, 0),
@@ -2684,7 +2686,8 @@ static const struct SpriteFrameImage sPicTableSurfingOverlay_ArceusFairy[] = {
     overworld_frame(gObjectEventPicSurfing_ArceusFairy, 8, 8, 10),
     overworld_frame(gObjectEventPicSurfing_ArceusFairy, 8, 8, 11),
 };
-// Gen V
+#endif 
+#if P_GEN_5_POKEMON
 
 static const struct SpriteFrameImage sPicTableSurfing_Oshawott[] = {
     overworld_frame(gObjectEventPicSurfing_Oshawott, 4, 4, 0),
@@ -3243,8 +3246,8 @@ static const struct SpriteFrameImage sPicTableSurfingOverlay_Keldeo[] = {
     overworld_frame(gObjectEventPicSurfing_Keldeo, 4, 4, 10),
     overworld_frame(gObjectEventPicSurfing_Keldeo, 4, 4, 11),
 };
-// Gen VI
-
+#endif 
+#if P_GEN_6_POKEMON
 static const struct SpriteFrameImage sPicTableSurfing_Froakie[] = {
     overworld_frame(gObjectEventPicSurfing_Froakie, 4, 4, 0),
     overworld_frame(gObjectEventPicSurfing_Froakie, 4, 4, 1),
@@ -3658,8 +3661,8 @@ static const struct SpriteFrameImage sPicTableSurfingOverlay_Avalugg[] = {
     overworld_frame(gObjectEventPicSurfing_Avalugg, 4, 4, 10),
     overworld_frame(gObjectEventPicSurfing_Avalugg, 4, 4, 11),
 };
-// Gen VII
-
+#endif 
+#if P_GEN_7_POKEMON
 static const struct SpriteFrameImage sPicTableSurfing_Popplio[] = {
     overworld_frame(gObjectEventPicSurfing_Popplio, 4, 4, 0),
     overworld_frame(gObjectEventPicSurfing_Popplio, 4, 4, 1),
@@ -4597,5 +4600,5 @@ static const struct SpriteFrameImage sPicTableSurfingOverlay_Overqwil[] = {
     overworld_frame(gObjectEventPicSurfing_Overqwil, 4, 4, 11),
 };
 
-
+#endif 
 #endif //OW_POKEMON_OBJECT_EVENTS

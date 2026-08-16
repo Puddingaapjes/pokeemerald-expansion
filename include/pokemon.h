@@ -509,6 +509,7 @@ struct SpeciesInfo /*0xC4*/
 #if OW_POKEMON_OBJECT_EVENTS
     struct ObjectEventGraphicsInfo overworldData;
     struct ObjectEventGraphicsInfo overworldDataSurfing;
+    struct ObjectEventGraphicsInfo overworldDataSurfingOverlay;
 #if P_GENDER_DIFFERENCES
     struct ObjectEventGraphicsInfo overworldDataFemale;
 #endif //P_GENDER_DIFFERENCES

@@ -72,8 +72,9 @@
     .overworldData = OVERWORLD_DATA(objEventPic, _size, shadow, _tracks, _anims),                   \
     OVERWORLD_PAL(__VA_ARGS__)
 
-#define OVERWORLD_SURFING(objEventPic, _size, shadow, _tracks, _anims)                          \
-    .overworldDataSurfing = OVERWORLD_DATA(objEventPic, _size, shadow, _tracks, _anims),                     \
+#define OVERWORLD_SURFING(picTableSurfing, picTableSurfingOverlay, _size, shadow, _tracks, _anims) \
+    .overworldDataSurfing        = OVERWORLD_DATA(picTableSurfing,    _size, shadow, _tracks, _anims), \
+    .overworldDataSurfingOverlay = OVERWORLD_DATA(picTableSurfingOverlay, _size, shadow, _tracks, _anims),
     
 #if P_GENDER_DIFFERENCES
 #define OVERWORLD_FEMALE(objEventPic, _size, shadow, _tracks, _anims, ...)                          \

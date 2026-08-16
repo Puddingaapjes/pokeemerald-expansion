@@ -6,6 +6,7 @@
 #include "field_player_avatar.h"
 #include "main.h"
 #include "party_menu.h"
+#include "pokemon.h"
 #include "sprite.h"
 #include "surfable.h"
 #include "constants/event_object_movement.h"
@@ -13,6 +14,16 @@
 #include "constants/field_effects.h"
 #include "constants/moves.h"
 #include "constants/species.h"
+
+static const struct SpriteTemplate sFieldEffectObjectTemplate_SurfMon = {
+    .tileTag = TAG_NONE,
+    .paletteTag = OBJ_EVENT_PAL_TAG_DYNAMIC,
+    .oam = &gObjectEventBaseOam_32x32,
+    .anims = sAnimTable_OverworldSurfing,
+    .images = NULL,
+    .affineAnims = gDummySpriteAffineAnimTable,
+    .callback = UpdateSurfBlobFieldEffect,
+};
 
 extern const struct OamData gObjectEventBaseOam_32x32;
 extern const struct OamData gObjectEventBaseOam_64x64;
@@ -22,73 +33,40 @@ extern void SynchronizeSurfAnim(struct ObjectEvent *playerObj, struct Sprite *sp
 extern void SynchronizeSurfPosition(struct ObjectEvent *playerObj, struct Sprite *sprite);
 extern void UpdateBobbingEffect(struct ObjectEvent *playerObj, struct Sprite *playerSprite, struct Sprite *sprite);
 
-static void CreateOverlaySprite(void);
+static void CreateOverlaySprite(enum Species species, bool32 isShiny, bool32 isFemale);
 static void UpdateSurfMonOverlay(struct Sprite *sprite);
-
-struct RideablePokemon
-{
-    u16 species;
-    u8 trainerPose;
-};
-
-#include "data/object_events/surfable/surfable_pokemon.h"
-#include "data/object_events/surfable/surfable_pokemon_graphics.h"
-#include "data/object_events/surfable/surfable_pokemon_pic_tables.h"
-#include "data/object_events/surfable/surfable_pokemon_templates.h"
-
-static EWRAM_DATA u16 sCurrentSurfMon = {0};
-
-static u16 GetSurfMonSpecies(void)
-{
-    u8 i;
-	u16 species;
-	
-	i = VarGet(VAR_SURF_MON_SLOT);
-	species = GetMonData(&gParties[B_TRAINER_PLAYER][i], MON_DATA_SPECIES, NULL);
-    return species;
-}
-
-static u16 GetSurfablePokemonSprite(void)
-{
-	//moved this from u8 to u32, was causing a crash with later mons
-    u32 i;
-    u16 mon = GetSurfMonSpecies();
-
-    for (i = 0; i < ARRAY_COUNT(gSurfablePokemon); i++)
-    {
-        if (mon == gSurfablePokemon[i].species)
-            return i;
-    }
-    return 0xFFFF;
-}
-
-static void LoadSurfOverworldPalette(void)
-{
-    u8 i;
-
-    i = VarGet(VAR_SURF_MON_SLOT);
-
-    if (IsMonShiny(&gParties[B_TRAINER_PLAYER][i]) == TRUE)
-        LoadSpritePalette(&sSurfablePokemonShinyPalettes[sCurrentSurfMon]);
-    else
-        LoadSpritePalette(&sSurfablePokemonPalettes[sCurrentSurfMon]);
-}
 
 u32 CreateSurfablePokemonSprite(void)
 {
     u8 spriteId;
     struct Sprite *sprite;
+    struct SpriteTemplate spriteTemplate;
+    u8 i;
+    enum Species species;
+    bool32 isShiny;
+    bool32 isFemale;
+
+    i = VarGet(VAR_SURF_MON_SLOT);
+    species = GetMonData(&gParties[B_TRAINER_PLAYER][i], MON_DATA_SPECIES, NULL);
+    isShiny = IsMonShiny(&gParties[B_TRAINER_PLAYER][i]);
+    isFemale = GetMonGender(&gParties[B_TRAINER_PLAYER][i]) == MON_FEMALE;
 
     SetSpritePosToOffsetMapCoords((s16 *)&gFieldEffectArguments[0], (s16 *)&gFieldEffectArguments[1], 8, 8);
 
-    sCurrentSurfMon = GetSurfablePokemonSprite();
-    if (sCurrentSurfMon != 0xFFFF)
+      if (gSpeciesInfo[species].overworldDataSurfing.images != NULL)
     {
-        LoadSurfOverworldPalette();
-        spriteId = CreateSpriteAtEnd(&gSurfablePokemonOverworldSprites[sCurrentSurfMon], gFieldEffectArguments[0], gFieldEffectArguments[1], 0x96);
-        if (gSurfablePokemonOverlaySprites[sCurrentSurfMon].tileTag == 0xFFFF)
+        spriteTemplate = sFieldEffectObjectTemplate_SurfMon;
+        spriteTemplate.images = gSpeciesInfo[species].overworldDataSurfing.images;
+        spriteTemplate.anims = gSpeciesInfo[species].overworldDataSurfing.anims;
+        LoadDynamicFollowerPalette(species, isShiny, isFemale, TRUE);
+        spriteId = CreateSpriteAtEnd(&spriteTemplate, gFieldEffectArguments[0], gFieldEffectArguments[1], 0x96);
+        if (spriteId != MAX_SPRITES)
         {
-            CreateOverlaySprite();
+            gSprites[spriteId].oam.paletteNum = IndexOfSpritePaletteTag(species + OBJ_EVENT_MON + (isShiny ? OBJ_EVENT_MON_SHINY : 0));
+        }
+        if (gSpeciesInfo[species].overworldDataSurfingOverlay.images != NULL)
+        { 
+            CreateOverlaySprite(species, isShiny, isFemale);
         }
     }
     else
@@ -110,17 +88,23 @@ u32 CreateSurfablePokemonSprite(void)
     return spriteId;
 }
 
-static void CreateOverlaySprite(void)
+static void CreateOverlaySprite(enum Species species, bool32 isShiny, bool32 isFemale)
 {
     u8 overlaySprite;
     u8 subpriority;
     struct Sprite *sprite;
+    struct SpriteTemplate spriteTemplate;
 
     subpriority = gSprites[gPlayerAvatar.spriteId].subpriority - 1;
-    overlaySprite = CreateSpriteAtEnd(&gSurfablePokemonOverlaySprites[sCurrentSurfMon], gFieldEffectArguments[0], gFieldEffectArguments[1], subpriority);
+    spriteTemplate = sFieldEffectObjectTemplate_SurfMon;
+    spriteTemplate.images = gSpeciesInfo[species].overworldDataSurfingOverlay.images;
+    spriteTemplate.anims = gSpeciesInfo[species].overworldDataSurfingOverlay.anims;
+    spriteTemplate.callback = UpdateSurfMonOverlay;
+    overlaySprite = CreateSpriteAtEnd(&spriteTemplate, gFieldEffectArguments[0], gFieldEffectArguments[1], subpriority);
 
     if (overlaySprite != MAX_SPRITES)
     {
+        gSprites[overlaySprite].oam.paletteNum = IndexOfSpritePaletteTag(species + OBJ_EVENT_MON + (isShiny ? OBJ_EVENT_MON_SHINY : 0));
         sprite = &gSprites[overlaySprite];
         sprite->coordOffsetEnabled = TRUE;
         sprite->data[2] = gFieldEffectArguments[2];
