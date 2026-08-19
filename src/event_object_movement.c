@@ -2196,6 +2196,12 @@ static u32 LoadDynamicFollowerPalette(enum Species species, bool32 shiny, bool32
         if ((paletteNum = IndexOfSpritePaletteTag(palTag)) < 16)
             return paletteNum;
         spritePalette.tag = palTag;
+        
+        if (FlagGet(FLAG_SYS_USE_FLASH) && gSpeciesInfo[species].flashPalette != NULL)
+        {
+        spritePalette.data = gSpeciesInfo[species].flashPalette;
+        }
+        else
     #if P_GENDER_DIFFERENCES
         if (female && gSpeciesInfo[species].overworldPaletteFemale != NULL)
         {
@@ -2254,7 +2260,7 @@ static void FollowerSetGraphics(struct ObjectEvent *objEvent, enum Species speci
 
 // Like FollowerSetGraphics, but does not recenter sprite on a metatile
 // Intended to be used for mid-movement form changes, etc.
-static void RefreshFollowerGraphics(struct ObjectEvent *objEvent)
+void RefreshFollowerGraphics(struct ObjectEvent *objEvent)
 {
     enum Species species = OW_SPECIES(objEvent);
     bool32 shiny = OW_SHINY(objEvent);

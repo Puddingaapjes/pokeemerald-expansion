@@ -43,7 +43,8 @@ const u32 gObjectEventPic_Substitute[] = INCGFX_COMP("graphics/pokemon/question_
 #if OW_PKMN_OBJECTS_SHARE_PALETTES == FALSE
     const u16 gOverworldPalette_Bulbasaur[] = INCGFX_U16("graphics/pokemon/bulbasaur/overworld_normal.pal", ".gbapal");
     const u16 gShinyOverworldPalette_Bulbasaur[] = INCGFX_U16("graphics/pokemon/bulbasaur/overworld_shiny.pal", ".gbapal");
-#endif //OW_PKMN_OBJECTS_SHARE_PALETTES
+    const u16 gFlashPalette_Bulbasaur[] = INCGFX_U16("graphics/pokemon/bulbasaur/flash_normal.pal", ".gbapal");
+    #endif //OW_PKMN_OBJECTS_SHARE_PALETTES
 #endif //OW_POKEMON_OBJECT_EVENTS
 
 #if !P_GBA_STYLE_SPECIES_GFX

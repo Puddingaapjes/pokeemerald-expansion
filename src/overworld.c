@@ -1695,6 +1695,18 @@ void UpdateTimeOfDay(bool32 updateBlend)
     hours = sHoursOverride ? sHoursOverride : gLocalTime.hours;
     minutes = sHoursOverride ? 0 : gLocalTime.minutes;
 
+    if (gMapHeader.mapType == MAP_TYPE_UNDERGROUND && FlagGet(FLAG_SYS_USE_FLASH) == FALSE)
+    {
+        if (updateBlend)
+        {
+            gTimeBlend.weight = DEFAULT_WEIGHT;
+            gTimeBlend.altWeight = 0;
+            gTimeBlend.startBlend = gTimeBlend.endBlend = gTimeOfDayBlend[TIME_NIGHT];
+        }
+        gTimeOfDay = TIME_NIGHT;
+        }
+    else
+
     if (IsBetweenHours(hours, MORNING_HOUR_BEGIN, MORNING_HOUR_MIDDLE)) // night->morning
     {
         if (updateBlend)
@@ -1771,7 +1783,8 @@ bool32 MapHasNaturalLight(enum MapType mapType)
          && (mapType == MAP_TYPE_TOWN
           || mapType == MAP_TYPE_CITY
           || mapType == MAP_TYPE_ROUTE
-          || mapType == MAP_TYPE_OCEAN_ROUTE));
+          || mapType == MAP_TYPE_OCEAN_ROUTE
+          || mapType == MAP_TYPE_UNDERGROUND));
 }
 
 bool32 CurrentMapHasShadows(void)

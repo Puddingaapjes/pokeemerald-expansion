@@ -2,6 +2,7 @@
 #include "braille_puzzles.h"
 #include "decompress.h"
 #include "event_data.h"
+#include "event_object_movement.h"
 #include "event_scripts.h"
 #include "field_effect.h"
 #include "fldeff.h"
@@ -102,6 +103,12 @@ static void FldEff_UseFlash(void)
 {
     PlaySE(SE_M_REFLECT);
     FlagSet(FLAG_SYS_USE_FLASH);
+    struct ObjectEvent *follower = GetFollowerObject();
+    if (follower != NULL)
+    {
+        RefreshFollowerGraphics(follower);
+    }
+    UpdateTimeOfDay(TRUE);
     ScriptContext_SetupScript(EventScript_UseFlash);
 }
 

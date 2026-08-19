@@ -518,6 +518,8 @@ struct SpeciesInfo /*0xC4*/
     const void* overworldPaletteFemale;
     const void* overworldShinyPaletteFemale;
 #endif //P_GENDER_DIFFERENCES
+    const void* flashPalette;
+    const void* flashShinyPalette;
 #endif //OW_PKMN_OBJECTS_SHARE_PALETTES
 #endif //OW_POKEMON_OBJECT_EVENTS
     enum OverworldWildEncounterBehaviors overworldEncounterBehavior;
