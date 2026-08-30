@@ -1683,9 +1683,8 @@ const struct BlendSettings gTimeOfDayBlend[] =
     [TIME_NIGHT]   = {.coeff = 10, .blendColor = TINT_NIGHT, .isTint = TRUE},
 };
 
-#define DEFAULT_WEIGHT 256
-#define TIME_BLEND_WEIGHT(begin, end) (DEFAULT_WEIGHT - SAFE_DIV((DEFAULT_WEIGHT * ((hours - begin) * MINUTES_PER_HOUR + minutes)), ((end - begin) * MINUTES_PER_HOUR)))
 
+#define TIME_BLEND_WEIGHT(begin, end) (DEFAULT_WEIGHT - SAFE_DIV((DEFAULT_WEIGHT * ((hours - begin) * MINUTES_PER_HOUR + minutes)), ((end - begin) * MINUTES_PER_HOUR)))
 #define MORNING_HOUR_MIDDLE (MORNING_HOUR_BEGIN + ((MORNING_HOUR_END - MORNING_HOUR_BEGIN) / 2))
 
 void UpdateTimeOfDay(bool32 updateBlend)
@@ -1695,19 +1694,35 @@ void UpdateTimeOfDay(bool32 updateBlend)
     hours = sHoursOverride ? sHoursOverride : gLocalTime.hours;
     minutes = sHoursOverride ? 0 : gLocalTime.minutes;
 
-    if (gMapHeader.mapType == MAP_TYPE_UNDERGROUND && FlagGet(FLAG_SYS_USE_FLASH) == FALSE)
+    if (gMapHeader.cave == TRUE)
     {
-        if (updateBlend)
+        if (updateBlend && !FuncIsActiveTask(Task_FlashBlendIn))
         {
-            gTimeBlend.weight = DEFAULT_WEIGHT;
-            gTimeBlend.altWeight = 0;
-            gTimeBlend.startBlend = gTimeBlend.endBlend = gTimeOfDayBlend[TIME_NIGHT];
+            if (FlagGet(FLAG_SYS_USE_FLASH) == FALSE)
+                {
+                    gTimeBlend.startBlend = gTimeBlend.endBlend = gTimeOfDayBlend[TIME_NIGHT];
+                    gTimeBlend.weight = DEFAULT_WEIGHT;
+                    gTimeBlend.altWeight = 0;
+                }
+                else         
+                {
+                    gTimeBlend.startBlend = gTimeOfDayBlend[TIME_NIGHT];
+                    gTimeBlend.endBlend = gTimeOfDayBlend[TIME_EVENING];
+                    gTimeBlend.weight = DEFAULT_WEIGHT / 2;
+                    gTimeBlend.altWeight = 0;
+                }
+                if (IsBetweenHours(hours, MORNING_HOUR_BEGIN, MORNING_HOUR_END))
+                    gTimeOfDay = TIME_MORNING;
+                else if (IsBetweenHours(hours, EVENING_HOUR_BEGIN, EVENING_HOUR_END))
+                    gTimeOfDay = TIME_EVENING;
+                else if (IsBetweenHours(hours, NIGHT_HOUR_BEGIN, NIGHT_HOUR_END))
+                    gTimeOfDay = TIME_NIGHT;
+                else
+                    gTimeOfDay = TIME_DAY;
         }
-        gTimeOfDay = TIME_NIGHT;
-        }
-    else
 
-    if (IsBetweenHours(hours, MORNING_HOUR_BEGIN, MORNING_HOUR_MIDDLE)) // night->morning
+    }
+    else if (IsBetweenHours(hours, MORNING_HOUR_BEGIN, MORNING_HOUR_MIDDLE)) // night->morning
     {
         if (updateBlend)
         {
@@ -1774,7 +1789,7 @@ void UpdateTimeOfDay(bool32 updateBlend)
 
 #undef MORNING_HOUR_MIDDLE
 #undef TIME_BLEND_WEIGHT
-#undef DEFAULT_WEIGHT
+
 
 // Whether a map type is naturally lit/outside
 bool32 MapHasNaturalLight(enum MapType mapType)
@@ -2224,6 +2239,21 @@ static void InitCurrentFlashLevelScanlineEffect(void)
     {
         WriteFlashScanlineEffectBuffer(flashLevel);
         ScanlineEffect_SetParams(sFlashEffectParams);
+    }
+    if (gMapHeader.cave == TRUE
+        && FlagGet(FLAG_SYS_USE_FLASH)
+        && !FuncIsActiveTask(Task_FlashBlendIn))
+    {
+        UpdateTimeOfDay(TRUE);
+        UpdateAltBgPalettes(PALETTES_BG);
+        UpdatePalettesWithTime(PALETTES_ALL);
+    }
+    else if (gMapHeader.cave == TRUE
+        && FlagGet(FLAG_SYS_USE_FLASH))
+    {
+        // Task is running, create it again after ResetTasks wiped it
+        UpdateTimeOfDay(TRUE);
+        CreateTask(Task_FlashBlendIn, 80);
     }
 }
 

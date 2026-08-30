@@ -33,6 +33,8 @@
 // don't update gTimeBlend
 #define HOURS_FREEZE_BLEND 26
 
+#define DEFAULT_WEIGHT 256 //for timeblending and flash
+
 struct InitialPlayerAvatarState
 {
     u8 transitionFlags;

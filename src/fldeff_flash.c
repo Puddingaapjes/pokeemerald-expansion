@@ -102,15 +102,50 @@ static void FieldCallback_Flash(void)
 static void FldEff_UseFlash(void)
 {
     PlaySE(SE_M_REFLECT);
+    UpdateTimeOfDay(TRUE);
     FlagSet(FLAG_SYS_USE_FLASH);
     struct ObjectEvent *follower = GetFollowerObject();
     if (follower != NULL)
     {
         RefreshFollowerGraphics(follower);
     }
-    UpdateTimeOfDay(TRUE);
+    CreateTask(Task_FlashBlendIn, 80);
     ScriptContext_SetupScript(EventScript_UseFlash);
 }
+
+
+#define FLASH_BLEND_TARGET (DEFAULT_WEIGHT / 2)
+#define FLASH_BLEND_SPEED 2
+
+void Task_FlashBlendIn(u8 taskId)
+{
+    gTimeBlend.startBlend = gTimeOfDayBlend[TIME_NIGHT];
+    gTimeBlend.endBlend = gTimeOfDayBlend[TIME_DAY];
+
+    if (gTimeBlend.weight > FLASH_BLEND_TARGET)
+    {
+        gTimeBlend.weight -= FLASH_BLEND_SPEED;
+        if (gTimeBlend.weight < FLASH_BLEND_TARGET)
+            gTimeBlend.weight = FLASH_BLEND_TARGET;
+
+        gTimeBlend.altWeight = 0;
+
+        UpdateAltBgPalettes(PALETTES_BG);
+        UpdatePalettesWithTime(PALETTES_ALL);
+    }
+    else
+    {
+        // Snap to final settled values
+        gTimeBlend.weight = FLASH_BLEND_TARGET;
+        UpdateAltBgPalettes(PALETTES_BG);
+        UpdatePalettesWithTime(PALETTES_ALL);
+        DestroyTask(taskId);
+    }
+}
+
+#undef FLASH_BLEND_TARGET
+#undef FLASH_BLEND_ALT_TARGET
+#undef FLASH_BLEND_SPEED
 
 static void CB2_ChangeMapMain(void)
 {
