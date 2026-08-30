@@ -82,7 +82,7 @@ bool32 SetUpFieldMove_Flash(void)
         gPostMenuFieldCallback = SetUpPuzzleEffectRegisteel;
         return TRUE;
     }
-    else if (gMapHeader.cave == TRUE && !FlagGet(FLAG_SYS_USE_FLASH))
+    else if (gMapHeader.mapType == MAP_TYPE_UNDERGROUND && !FlagGet(FLAG_SYS_USE_FLASH))
     {
         gFieldCallback2 = FieldCallback_PrepareFadeInFromMenu;
         gPostMenuFieldCallback = FieldCallback_Flash;
@@ -115,19 +115,26 @@ void FldEff_UseFlash(void)
 }
 
 
-#define FLASH_BLEND_TARGET (DEFAULT_WEIGHT / 2)
+#define FLASH_BLEND_WEIGHT (DEFAULT_WEIGHT / 2)
 #define FLASH_BLEND_SPEED 2
 
 void Task_FlashBlendIn(u8 taskId)
 {
-    gTimeBlend.startBlend = gCaveBlend[BLEND_CAVE];
+    if (gMapHeader.cave == TRUE)
+    {
+        gTimeBlend.startBlend = gCaveBlend[BLEND_CAVE];
+    }
+    else
+    {
+        gTimeBlend.startBlend = gCaveBlend[BLEND_UNDERGROUND];
+    }
     gTimeBlend.endBlend = gCaveBlend[BLEND_FLASH];
 
-    if (gTimeBlend.weight > FLASH_BLEND_TARGET)
+    if (gTimeBlend.weight > FLASH_BLEND_WEIGHT)
     {
         gTimeBlend.weight -= FLASH_BLEND_SPEED;
-        if (gTimeBlend.weight < FLASH_BLEND_TARGET)
-            gTimeBlend.weight = FLASH_BLEND_TARGET;
+        if (gTimeBlend.weight < FLASH_BLEND_WEIGHT)
+            gTimeBlend.weight = FLASH_BLEND_WEIGHT;
 
         gTimeBlend.altWeight = 0;
 
@@ -137,15 +144,15 @@ void Task_FlashBlendIn(u8 taskId)
     else
     {
         // Snap to final settled values
-        gTimeBlend.weight = FLASH_BLEND_TARGET;
+        gTimeBlend.weight = FLASH_BLEND_WEIGHT;
         UpdateAltBgPalettes(PALETTES_BG);
         UpdatePalettesWithTime(PALETTES_ALL);
         DestroyTask(taskId);
     }
 }
 
-#undef FLASH_BLEND_TARGET
-#undef FLASH_BLEND_ALT_TARGET
+#undef FLASH_BLEND_WEIGHT
+#undef FLASH_BLEND_ALT_WEIGHT
 #undef FLASH_BLEND_SPEED
 
 static void CB2_ChangeMapMain(void)

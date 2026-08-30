@@ -1676,7 +1676,7 @@ void CB1_Overworld(void)
 #define TINT_NIGHT Q_8_8(0.456) | Q_8_8(0.456) << 8 | Q_8_8(0.615) << 16
 #define TINT_UNDERGROUND Q_8_8(0.456) | Q_8_8(0.456) << 8 | Q_8_8(0.615) << 16
 #define TINT_CAVE Q_8_8(0.30) | Q_8_8(0.30) << 8 | Q_8_8(0.40) << 16
-#define TINT_FLASH Q_8_8(0.70) | Q_8_8(0.70) << 8 | Q_8_8(0.70) << 16
+#define TINT_FLASH Q_8_8(0.75) | Q_8_8(0.70) << 8 | Q_8_8(0.30) << 16
 
 const struct BlendSettings gTimeOfDayBlend[] =
 {
@@ -1726,9 +1726,19 @@ void UpdateTimeOfDay(bool32 updateBlend)
             }
             else
             {
-                gTimeBlend.startBlend = gTimeBlend.endBlend = gCaveBlend[BLEND_UNDERGROUND];
-                gTimeBlend.weight = DEFAULT_WEIGHT;
-                gTimeBlend.altWeight = 0; 
+                if (FlagGet(FLAG_SYS_USE_FLASH) == FALSE)
+                    {
+                        gTimeBlend.startBlend = gTimeBlend.endBlend = gCaveBlend[BLEND_UNDERGROUND];
+                        gTimeBlend.weight = DEFAULT_WEIGHT;
+                        gTimeBlend.altWeight = 0;
+                    }
+                    else         
+                    {
+                        gTimeBlend.startBlend = gCaveBlend[BLEND_UNDERGROUND];
+                        gTimeBlend.endBlend = gCaveBlend[BLEND_FLASH];
+                        gTimeBlend.weight = DEFAULT_WEIGHT / 2;
+                        gTimeBlend.altWeight = 0;
+                    }
             }
         }            
         if (IsBetweenHours(hours, MORNING_HOUR_BEGIN, MORNING_HOUR_END))
@@ -2253,25 +2263,10 @@ static void InitCurrentFlashLevelScanlineEffect(void)
         WriteBattlePyramidViewScanlineEffectBuffer();
         ScanlineEffect_SetParams(sFlashEffectParams);
     }
-    else if ((flashLevel = GetFlashLevel()))
+    else if (gMapHeader.cave && (flashLevel = GetFlashLevel()))
     {
         WriteFlashScanlineEffectBuffer(flashLevel);
         ScanlineEffect_SetParams(sFlashEffectParams);
-    }
-    if (gMapHeader.cave == TRUE
-        && FlagGet(FLAG_SYS_USE_FLASH)
-        && !FuncIsActiveTask(Task_FlashBlendIn))
-    {
-        UpdateTimeOfDay(TRUE);
-        UpdateAltBgPalettes(PALETTES_BG);
-        UpdatePalettesWithTime(PALETTES_ALL);
-    }
-    else if (gMapHeader.cave == TRUE
-        && FlagGet(FLAG_SYS_USE_FLASH))
-    {
-        // Task is running, create it again after ResetTasks wiped it
-        UpdateTimeOfDay(TRUE);
-        CreateTask(Task_FlashBlendIn, 80);
     }
 }
 
