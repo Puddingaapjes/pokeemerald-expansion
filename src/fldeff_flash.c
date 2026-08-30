@@ -12,6 +12,7 @@
 #include "overworld.h"
 #include "palette.h"
 #include "party_menu.h"
+#include "RTC.h"
 #include "script.h"
 #include "sound.h"
 #include "sprite.h"
@@ -28,7 +29,7 @@ struct FlashStruct
 };
 
 static void FieldCallback_Flash(void);
-static void FldEff_UseFlash(void);
+void FldEff_UseFlash(void);
 static bool8 TryDoMapTransition(void);
 static void DoExitCaveTransition(void);
 static void Task_ExitCaveTransition1(u8 taskId);
@@ -99,7 +100,7 @@ static void FieldCallback_Flash(void)
     gTasks[taskId].data[9] = (uintptr_t)FldEff_UseFlash;
 }
 
-static void FldEff_UseFlash(void)
+void FldEff_UseFlash(void)
 {
     PlaySE(SE_M_REFLECT);
     UpdateTimeOfDay(TRUE);
@@ -119,8 +120,8 @@ static void FldEff_UseFlash(void)
 
 void Task_FlashBlendIn(u8 taskId)
 {
-    gTimeBlend.startBlend = gTimeOfDayBlend[TIME_NIGHT];
-    gTimeBlend.endBlend = gTimeOfDayBlend[TIME_DAY];
+    gTimeBlend.startBlend = gCaveBlend[BLEND_CAVE];
+    gTimeBlend.endBlend = gCaveBlend[BLEND_FLASH];
 
     if (gTimeBlend.weight > FLASH_BLEND_TARGET)
     {

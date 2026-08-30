@@ -1674,6 +1674,9 @@ void CB1_Overworld(void)
 }
 
 #define TINT_NIGHT Q_8_8(0.456) | Q_8_8(0.456) << 8 | Q_8_8(0.615) << 16
+#define TINT_UNDERGROUND Q_8_8(0.456) | Q_8_8(0.456) << 8 | Q_8_8(0.615) << 16
+#define TINT_CAVE Q_8_8(0.30) | Q_8_8(0.30) << 8 | Q_8_8(0.40) << 16
+#define TINT_FLASH Q_8_8(0.70) | Q_8_8(0.70) << 8 | Q_8_8(0.70) << 16
 
 const struct BlendSettings gTimeOfDayBlend[] =
 {
@@ -1681,6 +1684,13 @@ const struct BlendSettings gTimeOfDayBlend[] =
     [TIME_DAY]     = {.coeff = 0,  .blendColor = 0,          .isTint = FALSE},
     [TIME_EVENING] = {.coeff = 4,  .blendColor = 0xA8B0E0,   .isTint = TRUE},
     [TIME_NIGHT]   = {.coeff = 10, .blendColor = TINT_NIGHT, .isTint = TRUE},
+};
+
+const struct BlendSettings gCaveBlend[] =
+{
+    [BLEND_UNDERGROUND] = {.coeff = 10, .blendColor = TINT_UNDERGROUND,   .isTint = TRUE},
+    [BLEND_CAVE]        = {.coeff = 10,  .blendColor = TINT_CAVE,          .isTint = TRUE},
+    [BLEND_FLASH]       = {.coeff = 6,  .blendColor = TINT_FLASH,         .isTint = TRUE},
 };
 
 
@@ -1694,33 +1704,41 @@ void UpdateTimeOfDay(bool32 updateBlend)
     hours = sHoursOverride ? sHoursOverride : gLocalTime.hours;
     minutes = sHoursOverride ? 0 : gLocalTime.minutes;
 
-    if (gMapHeader.cave == TRUE)
+    if (gMapHeader.mapType == MAP_TYPE_UNDERGROUND)
     {
         if (updateBlend && !FuncIsActiveTask(Task_FlashBlendIn))
         {
-            if (FlagGet(FLAG_SYS_USE_FLASH) == FALSE)
-                {
-                    gTimeBlend.startBlend = gTimeBlend.endBlend = gTimeOfDayBlend[TIME_NIGHT];
-                    gTimeBlend.weight = DEFAULT_WEIGHT;
-                    gTimeBlend.altWeight = 0;
-                }
-                else         
-                {
-                    gTimeBlend.startBlend = gTimeOfDayBlend[TIME_NIGHT];
-                    gTimeBlend.endBlend = gTimeOfDayBlend[TIME_EVENING];
-                    gTimeBlend.weight = DEFAULT_WEIGHT / 2;
-                    gTimeBlend.altWeight = 0;
-                }
-                if (IsBetweenHours(hours, MORNING_HOUR_BEGIN, MORNING_HOUR_END))
-                    gTimeOfDay = TIME_MORNING;
-                else if (IsBetweenHours(hours, EVENING_HOUR_BEGIN, EVENING_HOUR_END))
-                    gTimeOfDay = TIME_EVENING;
-                else if (IsBetweenHours(hours, NIGHT_HOUR_BEGIN, NIGHT_HOUR_END))
-                    gTimeOfDay = TIME_NIGHT;
-                else
-                    gTimeOfDay = TIME_DAY;
-        }
-
+            if (gMapHeader.cave == TRUE)
+            {
+                if (FlagGet(FLAG_SYS_USE_FLASH) == FALSE)
+                    {
+                        gTimeBlend.startBlend = gTimeBlend.endBlend = gCaveBlend[BLEND_CAVE];
+                        gTimeBlend.weight = DEFAULT_WEIGHT;
+                        gTimeBlend.altWeight = 0;
+                    }
+                    else         
+                    {
+                        gTimeBlend.startBlend = gCaveBlend[BLEND_CAVE];
+                        gTimeBlend.endBlend = gCaveBlend[BLEND_FLASH];
+                        gTimeBlend.weight = DEFAULT_WEIGHT / 2;
+                        gTimeBlend.altWeight = 0;
+                    }
+            }
+            else
+            {
+                gTimeBlend.startBlend = gTimeBlend.endBlend = gCaveBlend[BLEND_UNDERGROUND];
+                gTimeBlend.weight = DEFAULT_WEIGHT;
+                gTimeBlend.altWeight = 0; 
+            }
+        }            
+        if (IsBetweenHours(hours, MORNING_HOUR_BEGIN, MORNING_HOUR_END))
+            gTimeOfDay = TIME_MORNING;
+        else if (IsBetweenHours(hours, EVENING_HOUR_BEGIN, EVENING_HOUR_END))
+            gTimeOfDay = TIME_EVENING;
+        else if (IsBetweenHours(hours, NIGHT_HOUR_BEGIN, NIGHT_HOUR_END))
+            gTimeOfDay = TIME_NIGHT;
+        else
+            gTimeOfDay = TIME_DAY;   
     }
     else if (IsBetweenHours(hours, MORNING_HOUR_BEGIN, MORNING_HOUR_MIDDLE)) // night->morning
     {

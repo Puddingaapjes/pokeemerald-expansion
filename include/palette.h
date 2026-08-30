@@ -81,6 +81,7 @@ struct PaletteFadeControl
 };
 
 extern const struct BlendSettings gTimeOfDayBlend[];
+extern const struct BlendSettings gCaveBlend[];
 
 extern struct PaletteFadeControl gPaletteFade;
 extern u32 gPlttBufferTransferPending;

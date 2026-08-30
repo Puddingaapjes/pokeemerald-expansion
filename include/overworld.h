@@ -200,6 +200,14 @@ enum ItemObtainFlags
     FLAG_GET_ITEM_OBTAINED,
     FLAG_SET_ITEM_OBTAINED,
 };
+
+enum gCaveBlend
+{
+    BLEND_UNDERGROUND,
+    BLEND_CAVE,
+    BLEND_FLASH,
+};
+
 bool8 GetSetItemObtained(enum Item item, enum ItemObtainFlags caseId);
 
 void Overworld_CreditsMainCB(void);
