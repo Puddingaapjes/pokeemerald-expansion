@@ -830,11 +830,11 @@ static void CreateMarkingComboSprite(void);
 static void ClearBottomWindow(void);
 static void InitSupplementalTilemaps(void);
 static void PrintDisplayMonInfo(void);
-static void SetPartySlotTilemaps(void);
 // static void UpdateWaveformAnimation(void);
+// static void SetPartySlotTilemaps(void);
 static void StopFlashingCloseBoxButton(void);
 static void FreePokeStorageData(void);
-static void UpdatePartySlotColors(void);
+// static void UpdatePartySlotColors(void);
 static void StartFlashingCloseBoxButton(void);
 static void SetUpDoShowPartyMenu(void);
 static void StartDisplayMonMosaicEffect(void);
@@ -847,7 +847,7 @@ static void UpdateCloseBoxButtonTilemap(bool8);
 static void PrintMessage(u8 id);
 static void LoadDisplayMonGfx(enum Species species, u32 pid, bool32 isEgg);
 static void SpriteCB_DisplayMonMosaic(struct Sprite *);
-static void SetPartySlotTilemap(u8, bool8);
+//static void SetPartySlotTilemap(u8, bool8);
 
 // Tilemap utility
 static void TilemapUtil_SetRect(u8, u16, u16, u16, u16);
@@ -953,8 +953,8 @@ static const u16 sPkmnDataGray_Pal[]         = INCGFX_U16("graphics/pokemon_stor
 static const u16 sScrollingBg_Pal[]          = INCGFX_U16("graphics/pokemon_storage/scrolling_bg.pal", ".gbapal");
 static const u16 sScrollingBgMoveItems_Pal[] = INCGFX_U16("graphics/pokemon_storage/scrolling_bg_move_items.pal", ".gbapal");
 static const u16 sCloseBoxButton_Tilemap[]   = INCBIN_U16("graphics/pokemon_storage/close_box_button.bin");
-static const u16 sPartySlotFilled_Tilemap[]  = INCBIN_U16("graphics/pokemon_storage/party_slot_filled.bin");
-static const u16 sPartySlotEmpty_Tilemap[]   = INCBIN_U16("graphics/pokemon_storage/party_slot_empty.bin");
+//static const u16 sPartySlotFilled_Tilemap[]  = INCBIN_U16("graphics/pokemon_storage/party_slot_filled.bin");
+//static const u16 sPartySlotEmpty_Tilemap[]   = INCBIN_U16("graphics/pokemon_storage/party_slot_empty.bin");
 // static const u16 sWaveform_Pal[]             = INCGFX_U16("graphics/pokemon_storage/waveform.png", ".gbapal");
 // static const u32 sWaveform_Gfx[]             = INCGFX_U32("graphics/pokemon_storage/waveform.png", ".4bpp");
 static const u16 sUnused_Pal[]               = INCGFX_U16("graphics/pokemon_storage/unused.pal", ".gbapal");
@@ -2837,7 +2837,7 @@ static void Task_WithdrawMon(u8 taskId)
     case 4:
         if (!DoMonPlaceChange())
         {
-            UpdatePartySlotColors();
+            // UpdatePartySlotColors();
             sStorage->state++;
         }
         break;
@@ -2898,7 +2898,7 @@ static void Task_DepositMenu(u8 taskId)
         {
             ResetSelectionAfterDeposit();
             StartDisplayMonMosaicEffect();
-            UpdatePartySlotColors();
+            // UpdatePartySlotColors();
             SetPokeStorageTask(Task_PokeStorageMain);
         }
         break;
@@ -2991,7 +2991,7 @@ static void Task_ReleaseMon(u8 taskId)
         {
             RefreshDisplayMon();
             StartDisplayMonMosaicEffect();
-            UpdatePartySlotColors();
+            // UpdatePartySlotColors();
             sStorage->state++;
         }
         break;
@@ -3345,7 +3345,7 @@ static void Task_HandleMovingMonFromParty(u8 taskId)
     case 1:
         if (GetNumPartySpritesCompacting() == 0)
         {
-            UpdatePartySlotColors();
+            // UpdatePartySlotColors();
             SetPokeStorageTask(Task_PokeStorageMain);
         }
         break;
@@ -4049,7 +4049,7 @@ static void InitSupplementalTilemaps(void)
     TilemapUtil_SetMap(TILEMAPID_CLOSE_BUTTON, 1, sCloseBoxButton_Tilemap, 9, 4);
     TilemapUtil_SetPos(TILEMAPID_PARTY_MENU, 10, 0);
     TilemapUtil_SetPos(TILEMAPID_CLOSE_BUTTON, 21, 0);
-    SetPartySlotTilemaps();
+    // SetPartySlotTilemaps();
     if (sInPartyMenu)
     {
         UpdateCloseBoxButtonTilemap(TRUE);
@@ -4177,7 +4177,7 @@ static void UpdateCloseBoxButtonFlash(void)
     }
 }
 
-static void SetPartySlotTilemaps(void)
+/* static void SetPartySlotTilemaps(void)
 {
     u8 i;
 
@@ -4220,6 +4220,7 @@ static void UpdatePartySlotColors(void)
     TilemapUtil_Update(TILEMAPID_PARTY_MENU);
     ScheduleBgCopyTilemapToVram(1);
 }
+*/
 
 static void SetUpDoShowPartyMenu(void)
 {
