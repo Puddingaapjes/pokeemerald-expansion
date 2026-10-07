@@ -354,6 +354,7 @@ enum {
 // Window IDs for sWindowTemplates
 enum {
     WIN_DISPLAY_INFO,
+    WIN_MON_NAME,
     WIN_MESSAGE,
     WIN_ITEM_DESC,
 };
@@ -830,6 +831,7 @@ static void CreateMarkingComboSprite(void);
 static void ClearBottomWindow(void);
 static void InitSupplementalTilemaps(void);
 static void PrintDisplayMonInfo(void);
+static void PrintDisplayMonName(void);
 // static void UpdateWaveformAnimation(void);
 // static void SetPartySlotTilemaps(void);
 static void StopFlashingCloseBoxButton(void);
@@ -964,14 +966,25 @@ static const struct WindowTemplate sWindowTemplates[] =
 {
     // The panel below the currently displayed Pokémon
     [WIN_DISPLAY_INFO] = {
-        .bg = 1,
+        .bg = 0,
         .tilemapLeft = 0,
-        .tilemapTop = 11,
-        .width = 9,
-        .height = 7,
+        .tilemapTop = 10,
+        .width = 10,
+        .height = 10,
         .paletteNum = 3,
-        .baseBlock = 0xC0,
+        .baseBlock = 0x140,
     },
+
+    [WIN_MON_NAME] = {
+        .bg = 0,
+        .tilemapLeft = 0,
+        .tilemapTop = 0,
+        .width = 10,
+        .height = 2,
+        .paletteNum = 0,
+        .baseBlock = 0x2E8,
+    },
+
     [WIN_MESSAGE] = {
         .bg = 0,
         .tilemapLeft = 11,
@@ -2106,7 +2119,6 @@ static void Task_InitPokeStorage(u8 taskId)
         }
         break;
     case 2:
-        PutWindowTilemap(WIN_DISPLAY_INFO);
         ClearWindowTilemap(WIN_MESSAGE);
         CpuFill32(0, (void *)VRAM, 0x200);
         LoadUserWindowBorderGfx(WIN_MESSAGE, 0xB, BG_PLTT_ID(14));
@@ -4007,28 +4019,30 @@ static void LoadDisplayMonGfx(enum Species species, u32 pid, bool32 isEgg)
     }
 }
 
+static void PrintDisplayMonName(void)
+{
+        static const u8 sMonNameColors[3] = {TEXT_COLOR_TRANSPARENT, 5, TEXT_COLOR_TRANSPARENT};
+
+    FillWindowPixelBuffer(WIN_MON_NAME, PIXEL_FILL(0));
+    if (sStorage->displayMonInfo.species != SPECIES_NONE)
+    {
+        u8 fontId = GetFontIdToFit(sStorage->displayMonInfo.name, FONT_SMALL_NARROWER, 0, 64);
+        AddTextPrinterParameterized4(WIN_MON_NAME, fontId, 12, 0, 0, 0, sMonNameColors, TEXT_SKIP_DRAW, sStorage->displayMonInfo.nameText);
+    }
+    PutWindowTilemap(WIN_MON_NAME);
+    CopyWindowToVram(WIN_MON_NAME, COPYWIN_FULL);
+}
 static void PrintDisplayMonInfo(void)
 {
-    FillWindowPixelBuffer(WIN_DISPLAY_INFO, PIXEL_FILL(1));
+    if (sStorage->inBoxMovingMode != MOVE_MODE_NORMAL)
+        return;
     if (sStorage->boxOption != OPTION_MOVE_ITEMS)
     {
-        AddTextPrinterParameterized(WIN_DISPLAY_INFO, GetFontIdToFit(sStorage->displayMonNameText, FONT_NORMAL, 0, WindowWidthPx(WIN_DISPLAY_INFO) - 6), sStorage->displayMonNameText, 6, 0, TEXT_SKIP_DRAW, NULL);
-        AddTextPrinterParameterized(WIN_DISPLAY_INFO, GetFontIdToFit(sStorage->displayMonNameText, FONT_SHORT, 0, WindowWidthPx(WIN_DISPLAY_INFO) - 12), sStorage->displayMonSpeciesName, 6, 15, TEXT_SKIP_DRAW, NULL);
-        AddTextPrinterParameterized(WIN_DISPLAY_INFO, FONT_SHORT, sStorage->displayMonGenderLvlText, 10, 29, TEXT_SKIP_DRAW, NULL);
-        AddTextPrinterParameterized(WIN_DISPLAY_INFO, GetFontIdToFit(sStorage->displayMonItemName, FONT_SMALL, 0, WindowWidthPx(WIN_DISPLAY_INFO) - 6), sStorage->displayMonItemName, 6, 43, TEXT_SKIP_DRAW, NULL);
+        PrintDisplayMonName();
     }
-    else
+    if (sStorage->displayMonInfo.species != SPECIES_NONE)
     {
-        AddTextPrinterParameterized(WIN_DISPLAY_INFO, GetFontIdToFit(sStorage->displayMonItemName, FONT_SMALL, 0, WindowWidthPx(WIN_DISPLAY_INFO) - 6), sStorage->displayMonItemName, 6, 0, TEXT_SKIP_DRAW, NULL);
-        AddTextPrinterParameterized(WIN_DISPLAY_INFO, GetFontIdToFit(sStorage->displayMonNameText, FONT_NORMAL, 0, WindowWidthPx(WIN_DISPLAY_INFO) - 6), sStorage->displayMonNameText, 6, 13, TEXT_SKIP_DRAW, NULL);
-        AddTextPrinterParameterized(WIN_DISPLAY_INFO, GetFontIdToFit(sStorage->displayMonSpeciesName, FONT_SHORT, 0, WindowWidthPx(WIN_DISPLAY_INFO) - 12), sStorage->displayMonSpeciesName, 6, 28, TEXT_SKIP_DRAW, NULL);
-        AddTextPrinterParameterized(WIN_DISPLAY_INFO, FONT_SHORT, sStorage->displayMonGenderLvlText, 10, 42, TEXT_SKIP_DRAW, NULL);
-    }
-
-    CopyWindowToVram(WIN_DISPLAY_INFO, COPYWIN_GFX);
-    if (sStorage->displayMonSpecies != SPECIES_NONE)
-    {
-        UpdateMonMarkingTiles(sStorage->displayMonMarkings, sStorage->markingComboTilesPtr);
+        UpdateMonMarkingTiles(sStorage->displayMonInfo.markings, sStorage->markingComboTilesPtr);
         sStorage->markingComboSprite->invisible = FALSE;
     }
     else
@@ -8710,6 +8724,7 @@ static void MultiMove_ResetBg(void)
     SetBgAttribute(0, BG_ATTR_PALETTEMODE, 0);
     ClearGpuRegBits(REG_OFFSET_BG0CNT, BGCNT_256COLOR);
     FillBgTilemapBufferRect_Palette0(0, 0, 0, 0, 32, 32);
+    PrintDisplayMonInfo();
     CopyBgTilemapBufferToVram(0);
 }
 
