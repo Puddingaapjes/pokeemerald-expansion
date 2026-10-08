@@ -155,15 +155,7 @@ const u16 gMonIconPalettesCompressed[][16] =
 
 const u16 * GetIconPalette(enum Species species, bool32 isShiny, bool32 female)
 {
-#if P_GENDER_DIFFERENCES
-    if (gSpeciesInfo[species].iconSpriteFemale != NULL && gSpeciesInfo[species].paletteFemale != NULL && female)
-        return (isShiny) ? gSpeciesInfo[species].shinyPaletteFemale : gSpeciesInfo[species].paletteFemale;
-    else
-#endif
-    if (gSpeciesInfo[species].palette != NULL)
-        return (isShiny) ? gSpeciesInfo[species].shinyPalette : gSpeciesInfo[species].palette;
-    else
-        return gMonIconPalettesCompressed[GetMonIconPaletteIndexFromSpecies(species)];
+        return GetMonSpritePalFromSpeciesIsEgg(species, isShiny, female, FALSE);
 }
 
 const u32 GetIconPalTag(enum Species species, bool32 isShiny)
