@@ -1,94 +1,111 @@
 #include "global.h"
 #include "constants/species.h"
 
+#define MAX_VARIANTS 5
+
+struct PaletteRange
+{
+    u8 start : 4;  // Start index of palette customisation range
+    u8 length : 4; // Length of customisation range
+};
+
+struct PaletteShift
+{
+    s8 hueAmount;   
+    s8 chrAmount;  
+    s8 lumAmount;
+};
+
 struct PaletteVariant
 {
-  u8 start : 4;        // Start index of palette customisation range
-  u8 length : 4;       // Length of customisation range
-  u8 hue_amount : 3;   // Index into hue table [0,10,20,30,45,60,90,180]
-  u8 chr_amount : 2;   // Index into chroma table [0,5,10,25]
-  u8 lum_amount : 2;   // Index into luma table [0,5,10,25]
-  u8 sv_down_only : 1; // If set, switch from +/- to "down only" for both C & L (C: -2*chr, L: -2*lum)
+    struct PaletteRange paletteRange;
+    struct PaletteShift paletteShift[MAX_VARIANTS];
 };
 
 struct SpeciesVariant
 {
-  struct PaletteVariant pv1;
-  struct PaletteVariant pv2;
+    u8 numVariants;
+    struct PaletteVariant base;
+    struct PaletteVariant accent;
 };
 
-// Precomputed hue-amount table
-// Code uses hue in [0..255] instead of [0..360]
-// {0,10,20,30,45,60,90,180} -> {0,7,14,21,32,43,64,128}
-static const u8 sHueTable[8] = {0, 7, 14, 21, 32, 43, 64, 128};
-static const u8 sCLTable[4] = {0, 5, 10, 25};
-
 // return variant data or return default if species has no variants.
-const struct SpeciesVariant *GetSpeciesVariants(u32 species);
+const struct SpeciesVariant *GetSpeciesVariants(enum Species species, bool32 isShiny);
 
-void ApplyPaletteVariantToPaletteBuffer(u16 pal16[16], const struct PaletteVariant *pv, u16 prn16);
+void ApplyPaletteVariantToPaletteBuffer(u16 pal16[16], const struct PaletteVariant *pv, u8 varIdx);
 void ApplyCustomRestrictionToPaletteBuffer(u8 hMin, u8 hMax, u8 cMin, u8 cMax, u8 lMin, u8 lMax, u16 pal16[16]);
-void ApplyMonSpeciesVariantToPaletteBuffer(u32 species, bool8 shiny, u32 PID, u16 pal16[16]);
+void ApplyMonSpeciesVariantToPaletteBuffer(enum Species species, bool32 isShiny, u32 personality, u16 pal16[16]);
+u8 GetMonVariantIndex(enum Species species, bool32 isShiny, u32 personality);
 
 // Species data helpers
+#define BASE(s, l, ...)                             \
+    .base.paletteRange = { .start = (s), .length = (l) },   \
+    .base.paletteShift = { __VA_ARGS__ },                   \
+    .numVariants = sizeof((struct PaletteShift[]){__VA_ARGS__}) / sizeof(struct PaletteShift)
 
-#define HUE_INDEX(h) (            \
-    ((h) == 0 ? 0 : (h) <= 10 ? 1 \
-                : (h) <= 20   ? 2 \
-                : (h) <= 30   ? 3 \
-                : (h) <= 45   ? 4 \
-                : (h) <= 60   ? 5 \
-                : (h) <= 90   ? 6 \
-                : /*(h)==180*/ 7))
-
-#define CHR_INDEX(s) (           \
-    ((s) == 0 ? 0 : (s) <= 5 ? 1 \
-                : (s) <= 10  ? 2 \
-                : /*(s)==25*/ 3))
-
-#define LUM_INDEX(v) ( \
-    ((v) == 0 ? 0      \
-    : (v) <= 5 ? 1     \
-    : (v) <= 10  ? 2   \
-    : /*(v)==25*/ 3))
-
-#define PAL1(s, l)  \
-  .pv1.start = (s), \
-  .pv1.length = (l)
-
-#define PAL2(s, l)  \
-  .pv2.start = (s), \
-  .pv2.length = (l)
-
-#define HCL1(h, s, v, f)          \
-  .pv1.hue_amount = HUE_INDEX(h), \
-  .pv1.chr_amount = CHR_INDEX(s), \
-  .pv1.lum_amount = LUM_INDEX(v), \
-  .pv1.sv_down_only = (f)
-
-#define HCL2(h, s, v, f)          \
-  .pv2.hue_amount = HUE_INDEX(h), \
-  .pv2.chr_amount = CHR_INDEX(s), \
-  .pv2.lum_amount = LUM_INDEX(v), \
-  .pv2.sv_down_only = (f)
+#define ACCENT(s, l, ...)                           \
+    .accent.paletteRange = { .start = (s), .length = (l) }, \
+    .accent.paletteShift = { __VA_ARGS__ }
 
 #define DEFAULT_SPECIES_VARIANT \
   {                             \
-      PAL1(1, 15),              \
-      HCL1(0, 0, 0, FALSE),    \
+    BASE(1, 15,  {0, 0, 0}),    \
   }
 
 static const struct SpeciesVariant gSpeciesVariants[NUM_SPECIES] = {
     [SPECIES_BULBASAUR] = {
-        PAL1(1, 5),
-        HCL1(0, 25, 5, FALSE),
+        BASE(2, 5, {0, 0, 0}, {-25, 0, 0}, {25, 0, 0}),
+    },
+    [SPECIES_IVYSAUR] = {
+        BASE(6, 4, {0, 0, 0}, {-25, 0, 0}, {25, 0, 0}),
+    },
+    [SPECIES_VENUSAUR] = {
+        BASE(1, 4, {0, 0, 0}, {-25, 0, 0}, {25, 0, 0}),
     },
     [SPECIES_CHARMANDER] = {
-        PAL1(1, 5),
-        HCL1(0, 25, 5, FALSE),
+        BASE(5, 4, {0, 0, 0}, {-30, -10, 0}, {12, 20, -20}),
+    },
+    [SPECIES_CHARMELEON] = {
+        BASE(4, 4, {-25, 0, 20}, {-50, -20, 30}, {0, 0, 0}),
+    },
+    [SPECIES_CHARIZARD] = {
+        BASE(7, 3, {0, 0, 0}, {-30, -10, 20}, {15, 20, -20}),
     },
     [SPECIES_SQUIRTLE] = {
-        PAL1(1, 5),
-        HCL1(0, 25, 5, FALSE),
+        BASE(11, 5, {0, 0, 0}, {-60, 0, 0}, {60, 0, 0}),
     },
-}
+    [SPECIES_WARTORTLE] = {
+        BASE(6, 4, {0, 0, 0}, {-60, 0, 0}, {60, 0, 0}),
+    },
+    [SPECIES_BLASTOISE] = {
+        BASE(1, 4, {0, 0, 0}, {-60, 0, 0}, {60, 0, 0}),
+    },
+    [SPECIES_EEVEE] = {
+        BASE(1, 15, {0, 0, 0}, {-30, 0, 20}, {0, 0, 0}),
+    },
+    [SPECIES_WURMPLE] = {
+        BASE(1, 15, {0, 0, 0}, {127, 0, -25}, {40, 0, 0}),
+    },
+};
+
+static const struct SpeciesVariant gSpeciesShinyVariants[NUM_SPECIES] = 
+{
+  [SPECIES_BULBASAUR] = {
+      BASE(2, 5, {0, 0, 0}, {30, 0, 0}, {-30, 0, 0}),
+  },
+  [SPECIES_IVYSAUR] = {
+      BASE(6, 4, {0, 0, 0}, {30, 0, 0}, {-30, 0, 0}),
+  },
+  [SPECIES_VENUSAUR] = {
+      BASE(1, 4, {0, 0, 0}, {30, 0, 0}, {-30, 0, 0}),
+  },
+  [SPECIES_CHARMANDER] = {
+    BASE(9, 6, {0, 0, 0}, {127, 0, 0}, {63, 0, 0}),
+  },
+  [SPECIES_CHARMELEON] = {
+    BASE(13, 3, {0, 0, 0}, {128, 0, 0}, {64, 0, 0}),
+  },
+  [SPECIES_CHARIZARD] = {
+    BASE(11, 5, {0, 0, 0}, {128, 0, 0}, {64, 0, 0}),
+  },
+};

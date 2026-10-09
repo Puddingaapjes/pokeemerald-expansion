@@ -239,67 +239,32 @@ static inline void OklchToRgb5(uQ0_8 L, uQ0_8 C, uQ0_8 H, u8 *r, u8 *g, u8 *b)
   DebugPrintfCV("rgb : %u %u %u\n", *r, *g, *b);
 }
 
-/* -------- Variants data -------- */
-
-const struct SpeciesVariant *GetSpeciesVariants(u32 species)
+static inline u8 ChrLumRange(u8 base, s8 delta)
 {
-  const struct SpeciesVariant *l = &gSpeciesVariants[species];
-
-  // Treat an all-zero entry as "no variant" and return default.
-  if (l->pv1.length == 0 && l->pv2.length == 0 &&
-      l->pv1.hue_amount == 0 && l->pv1.chr_amount == 0 && l->pv1.lum_amount == 0 &&
-      l->pv2.hue_amount == 0 && l->pv2.chr_amount == 0 && l->pv2.lum_amount == 0)
-  {
-    DebugPrintf("%d - Default variant", species);
-    static const struct SpeciesVariant s = DEFAULT_SPECIES_VARIANT;
-    return &s;
-  }
-  else
-  {
-    DebugPrintf("%d - Custom variant", species);
-  }
-  return l;
+    s16 shift = (s16)base + (s16)delta;
+    if (shift < 0)   return 0;
+    if (shift > 255) return 255;
+    return (u8)shift;
 }
 
 // -------- Core palette application --------
 
-// PRN bit layout (16 bits total):
-// [0..6]=hue, [7..9]=chroma, [10..12]=luma, [13]=downH, [14]=downC, [15]=downL
-void ApplyPaletteVariantToPaletteBuffer(u16 pal16[16], const struct PaletteVariant *pv, u16 prn16)
+void ApplyPaletteVariantToPaletteBuffer(u16 pal16[16], const struct PaletteVariant *pv, u8 varIdx)
 {
-  u8 start = pv->start;
-  u8 len = (u8)(pv->length);
+  u8 start = pv->paletteRange.start;
+  u8 len = pv->paletteRange.length;
   if (len == 0)
     return;
 
-  const u8 hmax = sHueTable[pv->hue_amount & 7u];
-  const u8 cmax = sCLTable[pv->chr_amount & 3u];
-  const u8 lmax = sCLTable[pv->lum_amount & 3u];
+  if (varIdx >= MAX_VARIANTS)
+        varIdx = 0;
 
   // Nothing to do if variant asks for no change at all
-  if ((hmax | cmax | lmax) == 0)
-    return;
+    if ((pv->paletteShift[varIdx].hueAmount | pv->paletteShift[varIdx].chrAmount | pv->paletteShift[varIdx].lumAmount) == 0)
+        return;
 
   u8 iStart = ClampU8(start, 0, 15);
-  u8 iEnd = ClampU8((u16)start + (u16)len, 0, 15);
-
-  // Derive shifts/directions from the 16-bit PRN
-  u32 rnd = (u32)prn16;
-  u8 hueShift8 = ScaleToRange(BITS(rnd, 0, 7), 0, hmax, 7);
-  u8 chrAmtPct = ScaleToRange(BITS(rnd, 7, 3), 0, cmax, 3);
-  u8 lumAmtPct = ScaleToRange(BITS(rnd, 10, 3), 0, lmax, 3);
-  u8 downH = (u8)BITS(rnd, 13, 1);
-  u8 downC = (u8)BITS(rnd, 14, 1);
-  u8 downL = (u8)BITS(rnd, 15, 1);
-
-  // Compute signed deltas for C and L; amplify when down-only
-  u8 cDelta = chrAmtPct;
-  u8 lDelta = lumAmtPct;
-  if (pv->sv_down_only)
-  {
-    cDelta = (u8)(2 * cDelta);
-    lDelta = (u8)(2 * lDelta);
-  }
+  u8 iEnd = ClampU8((u16)start + (u16)len, 0, 16);
 
   for (u8 i = iStart; i < iEnd; ++i)
   {
@@ -307,17 +272,9 @@ void ApplyPaletteVariantToPaletteBuffer(u16 pal16[16], const struct PaletteVaria
     Rgb555Unpack(pal16[i], &r5, &g5, &b5);
     Rgb5ToOklch(r5, g5, b5, &l, &c, &h);
 
-    h = downH ? (u8)(h - hueShift8) : (u8)(h + hueShift8);
-
-    if (pv->sv_down_only || downC)
-      c = cDelta > c ? 0 : (u8)(c - cDelta);
-    else
-      c = (u8)(c + cDelta);
-
-    if (pv->sv_down_only || downL)
-      l = lDelta > l ? 0 : (u8)(l - lDelta);
-    else
-      l = (u8)((255 - lDelta < l) ? 255 : (l + lDelta));
+    h = (u8)(h + pv->paletteShift[varIdx].hueAmount);
+    c = ChrLumRange(c, pv->paletteShift[varIdx].chrAmount);
+    l = ChrLumRange(l, pv->paletteShift[varIdx].lumAmount);
 
     OklchToRgb5(l, c, h, &r5, &g5, &b5);
     pal16[i] = Rgb555Pack(r5, g5, b5);
@@ -342,23 +299,38 @@ void ApplyCustomRestrictionToPaletteBuffer(u8 hMin, u8 hMax, u8 cMin, u8 cMax, u
   }
 }
 
-void ApplyMonSpeciesVariantToPaletteBuffer(u32 species, bool8 shiny, u32 originalPID, u16 pal16[16])
+/* -------- Variants data -------- */
+
+const struct SpeciesVariant *GetSpeciesVariants(enum Species species, bool32 isShiny)
 {
-  const struct SpeciesVariant *sv = GetSpeciesVariants(species);
+  const struct SpeciesVariant *sv = isShiny 
+                                  ? &gSpeciesShinyVariants[species] 
+                                  : &gSpeciesVariants[species];
+
+  // Treat an all-zero entry as "no variant" and return default.
+  if (sv->numVariants == 0)
+  {
+    static const struct SpeciesVariant s = DEFAULT_SPECIES_VARIANT;
+    return &s;
+  }
+  else
+  {
+      return sv;
+  }
+}
+
+u8 GetMonVariantIndex(enum Species species, bool32 isShiny, u32 personality)
+{
+    const struct SpeciesVariant *sv = GetSpeciesVariants(species, isShiny);
+    return (u8)personality % sv->numVariants;
+}
+
+void ApplyMonSpeciesVariantToPaletteBuffer(enum Species species, bool32 isShiny, u32 personality, u16 pal16[16])
+{
+  const struct SpeciesVariant *sv = GetSpeciesVariants(species, isShiny);
   if (sv == NULL)
     return;
-
-  // ---- Variant 1 (use low 16 bits as PRN) ----
-  if (sv->pv1.hue_amount || sv->pv1.chr_amount || sv->pv1.lum_amount)
-  {
-    u16 prn1 = (u16)BITS(originalPID, 0, 16);
-    ApplyPaletteVariantToPaletteBuffer(pal16, &sv->pv1, prn1);
-  }
-
-  // ---- Variant 2 (use high 16 bits as PRN) ----
-  if (sv->pv2.hue_amount || sv->pv2.chr_amount || sv->pv2.lum_amount)
-  {
-    u16 prn2 = (u16)BITS(originalPID, 16, 16);
-    ApplyPaletteVariantToPaletteBuffer(pal16, &sv->pv2, prn2);
-  }
+  u8 varIdx = GetMonVariantIndex(species, isShiny, personality);
+  ApplyPaletteVariantToPaletteBuffer(pal16, &sv->base, varIdx);
+  ApplyPaletteVariantToPaletteBuffer(pal16, &sv->accent, varIdx);
 }
