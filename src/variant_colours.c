@@ -310,26 +310,31 @@ const struct SpeciesVariant *GetSpeciesVariants(enum Species species, bool32 isS
   // Treat an all-zero entry as "no variant" and return default.
   if (sv->numVariants == 0)
   {
-    static const struct SpeciesVariant s = DEFAULT_SPECIES_VARIANT;
-    return &s;
+    return NULL;
   }
   else
   {
-      return sv;
+    return sv;
   }
 }
 
 u8 GetMonVariantIndex(enum Species species, bool32 isShiny, u32 personality)
 {
-    const struct SpeciesVariant *sv = GetSpeciesVariants(species, isShiny);
-    return (u8)personality % sv->numVariants;
+  const struct SpeciesVariant *sv = GetSpeciesVariants(species, isShiny);
+  if (personality == 0 || sv == NULL)
+  {
+    return 0;
+  }
+   return (u8)personality % sv->numVariants;
 }
 
 void ApplyMonSpeciesVariantToPaletteBuffer(enum Species species, bool32 isShiny, u32 personality, u16 pal16[16])
 {
   const struct SpeciesVariant *sv = GetSpeciesVariants(species, isShiny);
   if (sv == NULL)
+  {
     return;
+  }
   u8 varIdx = GetMonVariantIndex(species, isShiny, personality);
   ApplyPaletteVariantToPaletteBuffer(pal16, &sv->base, varIdx);
   ApplyPaletteVariantToPaletteBuffer(pal16, &sv->accent, varIdx);

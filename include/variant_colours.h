@@ -47,11 +47,6 @@ u8 GetMonVariantIndex(enum Species species, bool32 isShiny, u32 personality);
     .accent.paletteRange = { .start = (s), .length = (l) }, \
     .accent.paletteShift = { __VA_ARGS__ }
 
-#define DEFAULT_SPECIES_VARIANT \
-  {                             \
-    BASE(1, 15,  {0, 0, 0}),    \
-  }
-
 static const struct SpeciesVariant gSpeciesVariants[NUM_SPECIES] = {
     [SPECIES_BULBASAUR] = {
         BASE(2, 5, {0, 0, 0}, {-25, 0, 0}, {25, 0, 0}),
