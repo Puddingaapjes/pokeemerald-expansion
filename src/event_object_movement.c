@@ -40,6 +40,7 @@
 #include "trainer_see.h"
 #include "trainer_hill.h"
 #include "util.h"
+#include "variant_colours.h"
 #include "wild_encounter.h"
 #include "wild_encounter_ow.h"
 #include "constants/event_object_movement.h"
@@ -2167,17 +2168,27 @@ const struct ObjectEventGraphicsInfo *SpeciesToGraphicsInfo(enum Species species
     return graphicsInfo;
 }
 
+static u32 GetPersonalityforFollowerPalette(void)
+{
+    struct Pokemon *mon = GetFirstLiveMon();
+    if (mon)
+        return GetMonData(mon, MON_DATA_PERSONALITY, NULL);
+    return 0;
+}
 // Find, or load, the palette for the specified Pokémon info
 static u32 LoadDynamicFollowerPalette(enum Species species, bool32 shiny, bool32 female)
 {
     u32 paletteNum;
-    // Use standalone palette, unless entry is OOB or NULL (fallback to front-sprite-based)
+    u32 personality = GetPersonalityforFollowerPalette();
+    struct SpritePalette spritePalette;
+       // Use standalone palette, unless entry is OOB or NULL (fallback to front-sprite-based)
 #if OW_POKEMON_OBJECT_EVENTS == TRUE && OW_PKMN_OBJECTS_SHARE_PALETTES == FALSE
     if (((shiny && gSpeciesInfo[species].overworldPalette)
     || (!shiny && gSpeciesInfo[species].overworldShinyPalette)) && gSpeciesInfo[species].shareFrontPalette == FALSE)
     {
-        struct SpritePalette spritePalette;
-        u16 palTag = species + OBJ_EVENT_MON + (shiny ? OBJ_EVENT_MON_SHINY : 0);
+        u16 palTag  = species * MAX_VARIANTS
+                    + OBJ_EVENT_MON 
+                    + (shiny ? OBJ_EVENT_MON_SHINY : 0);
     #if P_GENDER_DIFFERENCES
         if (female && gSpeciesInfo[species].overworldShinyPaletteFemale != NULL)
             palTag += OBJ_EVENT_MON_FEMALE;
@@ -2208,16 +2219,23 @@ static u32 LoadDynamicFollowerPalette(enum Species species, bool32 shiny, bool32
     else
 #endif //OW_POKEMON_OBJECT_EVENTS == TRUE && OW_PKMN_OBJECTS_SHARE_PALETTES == FALSE
     {
-        // Note that the shiny palette tag is `species + SPECIES_SHINY_TAG`, which must be increased with more Pokémon
-        // so that palette tags do not overlap
-        const u16 *palette = GetMonSpritePalFromSpecies(species, shiny, female); //ETODO
-        // palette already loaded
-        if ((paletteNum = IndexOfSpritePaletteTag(species)) < 16)
+        const u16 *followerPalette = GetMonSpritePalFromSpeciesIsEgg(species, shiny, personality, female, FALSE); 
+        u8 varIdx = GetMonVariantIndex(species, shiny, personality);
+        u16 palTag  = species * MAX_VARIANTS
+                    + varIdx
+                    + OBJ_EVENT_MON 
+                    + (shiny ? OBJ_EVENT_MON_SHINY : 0);
+        #if P_GENDER_DIFFERENCES
+        if (female)
+            palTag += OBJ_EVENT_MON_FEMALE;
+        #endif
+        
+        if ((paletteNum = IndexOfSpritePaletteTag(palTag)) < 16)
             return paletteNum;
-        // Use matching front sprite's normal/shiny palettes
-        // Load compressed palette
-        LoadSpritePaletteWithTag(palette, species);
-        paletteNum = IndexOfSpritePaletteTag(species); // Tag is always present
+        
+        spritePalette.tag = palTag;
+        spritePalette.data = followerPalette;
+        paletteNum = LoadSpritePalette(&spritePalette);
     }
 
     if (gWeatherPtr->currWeather != WEATHER_FOG_HORIZONTAL) // don't want to weather blend in fog

@@ -1,7 +1,7 @@
 #include "global.h"
 #include "constants/species.h"
 
-#define MAX_VARIANTS 5
+#define MAX_VARIANTS 4
 
 struct PaletteRange
 {
