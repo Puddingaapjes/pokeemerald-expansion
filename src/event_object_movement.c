@@ -2173,8 +2173,8 @@ static u32 LoadDynamicFollowerPalette(enum Species species, bool32 shiny, bool32
     u32 paletteNum;
     // Use standalone palette, unless entry is OOB or NULL (fallback to front-sprite-based)
 #if OW_POKEMON_OBJECT_EVENTS == TRUE && OW_PKMN_OBJECTS_SHARE_PALETTES == FALSE
-    if ((shiny && gSpeciesInfo[species].overworldPalette)
-    || (!shiny && gSpeciesInfo[species].overworldShinyPalette))
+    if (((shiny && gSpeciesInfo[species].overworldPalette)
+    || (!shiny && gSpeciesInfo[species].overworldShinyPalette)) && gSpeciesInfo[species].shareFrontPalette == FALSE)
     {
         struct SpritePalette spritePalette;
         u16 palTag = species + OBJ_EVENT_MON + (shiny ? OBJ_EVENT_MON_SHINY : 0);
