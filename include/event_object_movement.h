@@ -118,6 +118,8 @@ extern const struct SubspriteTable sOamTables_32x32[];
 extern const struct SubspriteTable sOamTables_64x64[];
 extern const union AnimCmd *const sAnimTable_Following[];
 extern const union AnimCmd *const sAnimTable_Following_Asym[];
+extern const union AnimCmd *const sAnimTable_OverworldSurfing[];
+extern const union AnimCmd *const sAnimTable_OverworldSurfing_Asym[];
 extern const struct SpriteTemplate *const gFieldEffectObjectTemplatePointers[];
 extern const u8 gReflectionEffectPaletteMap[];
 
@@ -270,7 +272,7 @@ const struct ObjectEventTemplate *GetObjectEventTemplateByLocalIdAndMap(u8 local
 u16 LoadSheetGraphicsInfo(const struct ObjectEventGraphicsInfo *info, u16 uuid, struct Sprite *sprite);
 u8 TrySpawnObjectEventTemplate(const struct ObjectEventTemplate *objectEventTemplate, u8 mapNum, u8 mapGroup, s16 cameraX, s16 cameraY);
 bool8 GetFollowerInfo(enum Species *species, bool32 *shiny, bool32 *female);
-const struct ObjectEventGraphicsInfo *SpeciesToGraphicsInfo(enum Species species, bool32 shiny, bool32 female);
+const struct ObjectEventGraphicsInfo *SpeciesToGraphicsInfo(enum Species species, bool32 shiny, bool32 female, bool32 surfing);
 u16 GetObjectEventFlagIdByLocalIdAndMap(u8 localId, u8 mapNum, u8 mapGroup);
 void CopyObjectGraphicsInfoToSpriteTemplate(u16 graphicsId, void (*callback)(struct Sprite *), struct SpriteTemplate *spriteTemplate, const struct SubspriteTable **subspriteTables);
 bool8 AreElevationsCompatible(u8, u8);
@@ -528,7 +530,7 @@ bool8 MovementAction_EmoteX_Step0(struct ObjectEvent *, struct Sprite *);
 bool8 MovementAction_EmoteDoubleExclamationMark_Step0(struct ObjectEvent *, struct Sprite *);
 
 u8 GetObjectEventApricornTreeId(u8 objectEventId);
-u16 GetGraphicsIdForMon(enum Species species, bool32 shiny, bool32 female);
+u16 GetGraphicsIdForMon(enum Species species, bool32 shiny, bool32 female, bool32 surfing);
 
 // Overworld Wild Encounter
 bool8 MovementAction_OverworldEncounterSpawn(enum SpawnDespawnTypeOWE spawnAnimType, struct ObjectEvent *objEvent);

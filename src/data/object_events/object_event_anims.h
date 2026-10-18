@@ -1197,6 +1197,8 @@ static const union AnimCmd *const sAnimTable_Inanimate[] = {
     [ANIM_STAY_STILL] = sAnim_StayStill,
 };
 
+
+
 static const union AnimCmd *const sAnimTable_QuintyPlump[] = {
     [ANIM_STD_FACE_SOUTH] = sAnim_QuintyPlumpFaceSouth,
     [ANIM_STD_FACE_NORTH] = sAnim_QuintyPlumpFaceNorth,
@@ -1295,6 +1297,60 @@ const union AnimCmd *const sAnimTable_Following_Asym[] = {
     [ANIM_STD_GO_FASTEST_EAST] = sAnim_ExitPokeballEast_Asym,
     [ANIM_EXIT_POKEBALL_FAST_SOUTH] = sAnim_ExitPokeballFastSouth,
     [ANIM_EXIT_POKEBALL_FAST_NORTH] = sAnim_ExitPokeballFastNorth,
+    [ANIM_EXIT_POKEBALL_FAST_WEST] = sAnim_ExitPokeballFastWest,
+    [ANIM_EXIT_POKEBALL_FAST_EAST] = sAnim_ExitPokeballFastEast_Asym,
+};
+const union AnimCmd *const sAnimTable_OverworldSurfing[] = {
+    [ANIM_STD_FACE_SOUTH] = sAnim_GoNorth2F,
+    [ANIM_STD_FACE_NORTH] = sAnim_GoSouth2F,
+    [ANIM_STD_FACE_WEST] = sAnim_GoWest2F,
+    [ANIM_STD_FACE_EAST] = sAnim_GoEast2F,
+    [ANIM_STD_GO_SOUTH] = sAnim_GoNorth2F,
+    [ANIM_STD_GO_NORTH] = sAnim_GoSouth2F,
+    [ANIM_STD_GO_WEST] = sAnim_GoWest2F,
+    [ANIM_STD_GO_EAST] = sAnim_GoEast2F,
+    [ANIM_STD_GO_FAST_SOUTH] = sAnim_GoFastNorth2F,
+    [ANIM_STD_GO_FAST_NORTH] = sAnim_GoFastSouth2F,
+    [ANIM_STD_GO_FAST_WEST] = sAnim_GoFastWest2F,
+    [ANIM_STD_GO_FAST_EAST] = sAnim_GoFastEast2F,
+    [ANIM_STD_GO_FASTER_SOUTH] = sAnim_EnterNorth,
+    [ANIM_STD_GO_FASTER_NORTH] = sAnim_EnterSouth,
+    [ANIM_STD_GO_FASTER_WEST] = sAnim_EnterWest,
+    [ANIM_STD_GO_FASTER_EAST] = sAnim_EnterEast,
+    [ANIM_STD_GO_FASTEST_SOUTH] = sAnim_ExitPokeballNorth,
+    [ANIM_STD_GO_FASTEST_NORTH] = sAnim_ExitPokeballSouth,
+    [ANIM_STD_GO_FASTEST_WEST] = sAnim_ExitPokeballWest,
+    [ANIM_STD_GO_FASTEST_EAST] = sAnim_ExitPokeballEast,
+    [ANIM_EXIT_POKEBALL_FAST_SOUTH] = sAnim_ExitPokeballFastNorth,
+    [ANIM_EXIT_POKEBALL_FAST_NORTH] = sAnim_ExitPokeballFastSouth,
+    [ANIM_EXIT_POKEBALL_FAST_WEST] = sAnim_ExitPokeballFastWest,
+    [ANIM_EXIT_POKEBALL_FAST_EAST] = sAnim_ExitPokeballFastEast,
+};
+
+// Like the above, but has separate frames for facing right
+const union AnimCmd *const sAnimTable_OverworldSurfing_Asym[] = {
+    [ANIM_STD_FACE_SOUTH] = sAnim_GoNorth2F,
+    [ANIM_STD_FACE_NORTH] = sAnim_GoSouth2F,
+    [ANIM_STD_FACE_WEST] = sAnim_GoWest2F,
+    [ANIM_STD_FACE_EAST] = sAnim_GoEast2F_Asym,
+    [ANIM_STD_GO_SOUTH] = sAnim_GoNorth2F,
+    [ANIM_STD_GO_NORTH] = sAnim_GoSouth2F,
+    [ANIM_STD_GO_WEST] = sAnim_GoWest2F,
+    [ANIM_STD_GO_EAST] = sAnim_GoEast2F_Asym,
+    [ANIM_STD_GO_FAST_SOUTH] = sAnim_GoFastNorth2F,
+    [ANIM_STD_GO_FAST_NORTH] = sAnim_GoFastSouth2F,
+    [ANIM_STD_GO_FAST_WEST] = sAnim_GoFastWest2F,
+    [ANIM_STD_GO_FAST_EAST] = sAnim_GoFastEast2F,
+    [ANIM_STD_GO_FASTER_SOUTH] = sAnim_EnterNorth,
+    [ANIM_STD_GO_FASTER_NORTH] = sAnim_EnterSouth,
+    [ANIM_STD_GO_FASTER_WEST] = sAnim_EnterWest,
+    [ANIM_STD_GO_FASTER_EAST] = sAnim_EnterEast_Asym,
+    [ANIM_STD_GO_FASTEST_SOUTH] = sAnim_ExitPokeballNorth,
+    [ANIM_STD_GO_FASTEST_NORTH] = sAnim_ExitPokeballSouth,
+    [ANIM_STD_GO_FASTEST_WEST] = sAnim_ExitPokeballWest,
+    [ANIM_STD_GO_FASTEST_EAST] = sAnim_ExitPokeballEast_Asym,
+    [ANIM_EXIT_POKEBALL_FAST_SOUTH] = sAnim_ExitPokeballFastNorth,
+    [ANIM_EXIT_POKEBALL_FAST_NORTH] = sAnim_ExitPokeballFastSouth,
     [ANIM_EXIT_POKEBALL_FAST_WEST] = sAnim_ExitPokeballFastWest,
     [ANIM_EXIT_POKEBALL_FAST_EAST] = sAnim_ExitPokeballFastEast_Asym,
 };
@@ -1615,6 +1671,10 @@ static const struct StepAnimTable sStepAnimTables[] = {
     },
     {
         .anims = sAnimTable_Following,
+        .animPos = {1, 3, 0, 2},
+    },
+    {
+        .anims = sAnimTable_OverworldSurfing,
         .animPos = {1, 3, 0, 2},
     },
     {

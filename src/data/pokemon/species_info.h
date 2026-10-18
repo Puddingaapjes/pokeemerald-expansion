@@ -70,6 +70,9 @@
     .overworldData = OVERWORLD_DATA(objEventPic, _size, shadow, _tracks, _anims),                   \
     OVERWORLD_PAL(__VA_ARGS__)
 
+#define OVERWORLD_SURFING(objEventPic, _size, shadow, _tracks, _anims)                          \
+    .overworldDataSurfing = OVERWORLD_DATA(objEventPic, _size, shadow, _tracks, _anims),                     \
+    
 #if P_GENDER_DIFFERENCES
 #define OVERWORLD_FEMALE(objEventPic, _size, shadow, _tracks, _anims, ...)                          \
     .overworldDataFemale = OVERWORLD_DATA(objEventPic, _size, shadow, _tracks, _anims),             \
@@ -80,6 +83,7 @@
 
 #else
 #define OVERWORLD(...)
+#define OVERWORLD_SURFING(...)
 #define OVERWORLD_FEMALE(...)
 #define OVERWORLD_PAL(...)
 #define OVERWORLD_PAL_FEMALE(...)
@@ -142,6 +146,23 @@ const struct SpeciesInfo gSpeciesInfo[] =
             .oam = &gObjectEventBaseOam_32x32,
             .subspriteTables = sOamTables_32x32,
             .anims = sAnimTable_Following,
+            .images = sPicTable_Substitute,
+        },
+        .overworldDataSurfing = {
+            .tileTag = TAG_NONE,
+            .paletteTag = OBJ_EVENT_PAL_TAG_SUBSTITUTE,
+            .reflectionPaletteTag = OBJ_EVENT_PAL_TAG_NONE,
+            .size = 512,
+            .width = 32,
+            .height = 32,
+            .paletteSlot = PALSLOT_NPC_1,
+            .shadowSize = SHADOW_SIZE_M,
+            .inanimate = FALSE,
+            .compressed = COMP,
+            .tracks = TRACKS_FOOT,
+            .oam = &gObjectEventBaseOam_32x32,
+            .subspriteTables = sOamTables_32x32,
+            .anims = sAnimTable_OverworldSurfing,
             .images = sPicTable_Substitute,
         },
     #endif
