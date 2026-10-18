@@ -879,6 +879,7 @@ const struct SpeciesInfo gSpeciesInfoGen1[] =
         .evolutions = EVOLUTION({EVO_LEVEL, 16, SPECIES_WARTORTLE}),
         OVERWORLD_SURFING(
             sPicTableSurfing_Squirtle,
+            sPicTableSurfingOverlay_Squirtle,
             SIZE_32x32,
             SHADOW_SIZE_M,
             TRACKS_FOOT,
@@ -956,6 +957,7 @@ const struct SpeciesInfo gSpeciesInfoGen1[] =
         .evolutions = EVOLUTION({EVO_LEVEL, 36, SPECIES_BLASTOISE}),
         OVERWORLD_SURFING(
             sPicTableSurfing_Wartortle,
+            sPicTableSurfingOverlay_Wartortle,
             SIZE_32x32,
             SHADOW_SIZE_M,
             TRACKS_FOOT,
@@ -1045,6 +1047,7 @@ const struct SpeciesInfo gSpeciesInfoGen1[] =
         .formChangeTable = sBlastoiseFormChangeTable,
         OVERWORLD_SURFING(
             sPicTableSurfing_Blastoise,
+            sPicTableSurfingOverlay_Blastoise,
             SIZE_32x32,
             SHADOW_SIZE_M,
             TRACKS_FOOT,
