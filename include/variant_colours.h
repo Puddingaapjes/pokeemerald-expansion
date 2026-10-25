@@ -49,31 +49,36 @@ u8 GetMonVariantIndex(enum Species species, bool32 isShiny, u32 personality);
 
 static const struct SpeciesVariant gSpeciesVariants[NUM_SPECIES] = {
     [SPECIES_BULBASAUR] = {
-        BASE(2, 5, {0, 0, 0}, {-25, 0, 0}, {25, 0, 0}),
+        BASE(2, 5, {0, 0, 0}, {-55, 0, -10}, {40, 0, 0}),
+        ACCENT(7, 5, {0, 0, 0}, {-8, 0, 0}, {12, 0, 0})
     },
     [SPECIES_IVYSAUR] = {
-        BASE(6, 4, {0, 0, 0}, {-25, 0, 0}, {25, 0, 0}),
+        BASE(2, 4, {0, 0, 0}, {-52, 0, -10}, {40, 0, 0}),
+        ACCENT(6, 4, {0, 0, 0}, {-8, 0, 0}, {12, 0, 0})
     },
     [SPECIES_VENUSAUR] = {
-        BASE(1, 4, {0, 0, 0}, {-25, 0, 0}, {25, 0, 0}),
+        BASE(2, 4, {0, 0, 0}, {-52, 0, -10}, {40, 0, 0}),
+        ACCENT(6, 2, {0, 0, 0}, {-8, 0, 0}, {12, 0, 0})
     },
     [SPECIES_CHARMANDER] = {
-        BASE(5, 4, {0, 0, 0}, {-30, -10, 0}, {12, 20, -20}),
+        BASE(2, 4, {0, 0, 0}, {-30, -5, 10}, {7, 12, -16}),
+        ACCENT(4, 1, {0, 0, 0}, {0, 0, 0}, {8, 0, 0})
     },
     [SPECIES_CHARMELEON] = {
-        BASE(4, 4, {-25, 0, 20}, {-50, -20, 30}, {0, 0, 0}),
+        BASE(2, 5, {-22, -18, 10}, {-38, -20, 20}, {0, 0, 0}),
     },
     [SPECIES_CHARIZARD] = {
-        BASE(7, 3, {0, 0, 0}, {-30, -10, 20}, {15, 20, -20}),
+        BASE(2, 3, {0, 0, 0}, {-30, -3, 14}, {12, 20, -16}),
+        ACCENT(4, 3, {0, 0, 0}, {0, 0, 0}, {10, 10, 0})
     },
     [SPECIES_SQUIRTLE] = {
-        BASE(11, 5, {0, 0, 0}, {-60, 0, 0}, {60, 0, 0}),
+        BASE(2, 4, {-66, 40, -10}, {0, 0, 0}, {35, 10, 5}),
     },
     [SPECIES_WARTORTLE] = {
-        BASE(6, 4, {0, 0, 0}, {-60, 0, 0}, {60, 0, 0}),
+        BASE(2, 4, {0, 0, 0}, {-50, 0, -20}, {40, -10, 0}),
     },
     [SPECIES_BLASTOISE] = {
-        BASE(1, 4, {0, 0, 0}, {-60, 0, 0}, {60, 0, 0}),
+        BASE(2, 4, {0, 0, 0}, {-50, 0, 0}, {40, -10, 0}),
     },
     [SPECIES_EEVEE] = {
         BASE(1, 15, {0, 0, 0}, {-30, 0, 20}, {0, 0, 0}),
@@ -85,22 +90,37 @@ static const struct SpeciesVariant gSpeciesVariants[NUM_SPECIES] = {
 
 static const struct SpeciesVariant gSpeciesShinyVariants[NUM_SPECIES] = 
 {
-  [SPECIES_BULBASAUR] = {
-      BASE(2, 5, {0, 0, 0}, {30, 0, 0}, {-30, 0, 0}),
-  },
-  [SPECIES_IVYSAUR] = {
-      BASE(6, 4, {0, 0, 0}, {30, 0, 0}, {-30, 0, 0}),
-  },
-  [SPECIES_VENUSAUR] = {
-      BASE(1, 4, {0, 0, 0}, {30, 0, 0}, {-30, 0, 0}),
-  },
-  [SPECIES_CHARMANDER] = {
-    BASE(9, 6, {0, 0, 0}, {127, 0, 0}, {63, 0, 0}),
-  },
-  [SPECIES_CHARMELEON] = {
-    BASE(13, 3, {0, 0, 0}, {128, 0, 0}, {64, 0, 0}),
-  },
-  [SPECIES_CHARIZARD] = {
-    BASE(11, 5, {0, 0, 0}, {128, 0, 0}, {64, 0, 0}),
-  },
+    [SPECIES_BULBASAUR] = {
+        BASE(11, 3, {0, 0, 0}, {40, 0, 0}, {-30, 0, 0}),
+    },
+    [SPECIES_IVYSAUR] = {
+        BASE(10, 4, {0, 0, 0}, {40, 0, 0}, {-20, 0, 0}),
+    },
+    [SPECIES_VENUSAUR] = {
+        BASE(8, 4, {0, 0, 0}, {40, 0, 0}, {-30, 0, 0}),
+    },
+    [SPECIES_CHARMANDER] = {
+        BASE(8, 6, {0, 0, 0}, {127, 0, 0}, {20, 0, 20}),
+        ACCENT(9, 2, {0, 0, 0}, {0, 0, 0}, {40, 0, 0})
+    },
+    [SPECIES_CHARMELEON] = {
+        BASE(9, 4, {0, 0, 0}, {127, 0, 0}, {20, 0, 20}),
+        ACCENT(10, 2, {0, 0, 0}, {0, 0, 0}, {40, 0, 0})
+    },
+    [SPECIES_CHARIZARD] = {
+        BASE(7, 5, {0, 0, 0}, {127, 0, 0}, {20, 0, 20}),
+        ACCENT(10, 2, {0, 0, 0}, {0, 0, 0}, {40, 0, 0})
+    },
+    [SPECIES_SQUIRTLE] = {
+        BASE(2, 5, {0, 0, 0}, {0, -70, 20}),
+        ACCENT(7, 5, {0, 0, 0}, {0, -30, 0})
+    },
+    [SPECIES_WARTORTLE] = {
+        BASE(2, 4, {0, 0, 0}, {0, -70, 30}),
+        ACCENT(7, 4, {0, 0, 0}, {0, -30, 0})
+    },
+    [SPECIES_BLASTOISE] = {
+        BASE(2, 4, {0, 0, 0}, {0, -70, 30}),
+        ACCENT(7, 4, {0, 0, 0}, {0, -30, 0})
+    },
 };
